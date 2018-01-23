@@ -1,0 +1,37 @@
+Package: fishtrack3d
+Type: Package
+Title: Analysis of Passive Acoustic Telemetry Data in 3D
+Version: 0.1.0
+Authors@R: c(
+    person("Eneko", "Aspillaga", email = "eneko.aspillaga@gmail.com",
+           role = c("aut", "cre")),
+    person("Kamran", "Safi", role = "aut"),
+    person("Bernat", "Hereu", role = "aut"),
+    person("Frederic", "Bartumeus", role = "aut"))
+Description: Provides several tools for analyzing passive acoustic telemetry
+    data, including a new method to estimate 3D space uses taking into account
+    the local topography.
+License: GPL (>= 3)
+Encoding: UTF-8
+LazyData: true
+Depends:
+    R (>= 2.10),
+    raster(>= 2.6-7)
+Imports:
+    gdistance (>= 1.2-1),
+    graphics,
+    ks (>= 1.10.7),
+    lubridate (>= 1.7.1),
+    plyr (>= 1.8.4),
+    rgeos (>= 0.3-26),
+    sp (>= 1.2-5),
+    zoo (>= 1.8-0)
+Suggests:
+    doMC,
+    knitr,
+    maptools,
+    rgl,
+    rgrass7,
+    rmarkdown
+VignetteBuilder: knitr
+RoxygenNote: 6.0.1
