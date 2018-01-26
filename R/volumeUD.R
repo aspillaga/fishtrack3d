@@ -68,7 +68,7 @@ predictKde <- function(kde, raster, depths) {
     rast.t <- raster::raster(raster)
     raster::values(rast.t) <- predict(kde,
                                       x = data.frame(sp::coordinates(rast.t),
-                                                     z = d))
+                                                     z = -d))
     return(rast.t)
   })
 

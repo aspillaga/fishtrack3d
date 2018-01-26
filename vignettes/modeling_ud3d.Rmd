@@ -538,18 +538,15 @@ library(ks)
 kde.list <- lapply(rast3d.list, function(r) {
   
   # Convert the RasterStack into a table
-  depths <- as.numeric(substr(names(r), start = 2, stop = 6))
-  
-  table <- ldply(1:length(depths), function(d) {
-    data.frame(coordinates(r), 
-               z = -rep(depths[d], nrow(coordinates(r))),
-               val = values(r)[, d])
-  
-  })
+  table <- as.data.frame(r, xy = TRUE)
+  table <- ldply(3:ncol(table), function(n) {
+    return(cbind(table[, 1:2], depth = colnames(table)[n], val = table[, n]))
+  }) 
+  table <- table[table$val > 0, ]
+  table$depth <- -as.numeric(substr(table$depth, start = 2, stop = 6))
   
   # Kernel density estimation
-  t <- table[which(table$val > 0), ]
-  kde.tmp <- kde(x = t[, 1:3], w = t$val, compute.cont = FALSE)
+  kde.tmp <- kde(x = table[, 1:3], w = table$val, compute.cont = FALSE)
   
   return(kde.tmp)
   
@@ -579,7 +576,7 @@ library(rgl)
 # Generate a matrix to plot the bathymetry
 x <- unique(coordinates(bathymetry)[, 1])
 y <- unique(coordinates(bathymetry)[, 2])
-z <- matrix(values(bathymetry), ncol = length(x))
+z <- t(as.matrix(bathymetry))
 z[is.na(z)] <- 0
 
 # Set the color scale for depth
@@ -621,7 +618,7 @@ This last part of code applies the `volumeUD` function to compute the UD volumes
 # Compute UD volumes
 ud.vol.list <- llply(kde.list, function(k) {
   
-    rast.tmp <- predictKde(kde = k, raster = bathymetry, depths = -(0.5:69.5))
+    rast.tmp <- predictKde(kde = k, raster = bathymetry, depths = 0.5:69.5)
     rast.tmp <- volumeUD(rast.tmp)
     return(rast.tmp)
     
@@ -641,17 +638,14 @@ Plotting and exploting 3D contours with the `rgl` package is quite slow and visu
 contour.table <- lapply(ud.vol.list, function(r) {
 
   # Convert the RasterStack into a table
-  depths <- as.numeric(substr(names(r), start = 3, stop = 6))
-  
-  tmp <- ldply(1:length(depths), function(d) {
-    
-    data.frame(coordinates(r), 
-               z =  -rep(depths[d], nrow(coordinates(r))),
-               vol = values(r)[, d])
-    
+  cont.tab <- as.data.frame(r, xy = TRUE)
+  cont.tab <- ldply(3:ncol(cont.tab), function(n) {
+    return(cbind(cont.tab[, 1:2], depth = colnames(cont.tab)[n], 
+                 vol = cont.tab[, n]))
   })
+  cont.tab$depth <- -as.numeric(substr(cont.tab$depth, start = 2, stop = 6))
   
-  return(tmp)
+  return(cont.tab)
   
 })
 
