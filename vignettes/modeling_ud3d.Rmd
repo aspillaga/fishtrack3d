@@ -333,7 +333,7 @@ depth_cost_list <- lapply(depths, function(x) {
   leastCostMap(topo = bathymetry, min.depth = x)
 })
 
-raster::names(depth_cost_list) <- 0:70
+names(depth_cost_list) <- 0:70
 
 ```
 
@@ -428,7 +428,7 @@ lines3d(x = synthetic.path[[2]]$x, y = synthetic.path[[2]]$y,
 ```
 
 ``` {r 3d_path_vis, eval = FALSE, echo = FALSE}
-rgl.snapshot("./vignettes/3d_traj.png", fmt = "png", top = TRUE)
+rgl.snapshot("./3d_traj.png", fmt = "png", top = TRUE)
 ```
 
 
@@ -606,7 +606,7 @@ plot(kde.list[[2]], cont = c(25, 75), add = TRUE, axes = FALSE,
 ```
 
 ``` {r save_kde_plot, echo = FALSE, eval = FALSE}
-rgl.snapshot("./vignettes/3d_contour.png", fmt = "png", top = TRUE)
+rgl.snapshot("./3d_contour.png", fmt = "png", top = TRUE)
 ```
 
 ![50% and 90% contours (inner and outer volumes) for the two individuals (different color tonalities)](./3d_contour.png)
@@ -659,7 +659,7 @@ contour.table <- lapply(ud.vol.list, function(r) {
 # Save the tables to import in paraview
 for (i in names(contour.table)) {
   write.csv(contour.table[[i]], row.names = FALSE,
-            file = paste0(i, ".csv"))
+            file = paste0("../", i, ".csv"))
 }
 
 ```

@@ -310,7 +310,7 @@ syntPath <- function(track.data, topo, dist.rec, ac.range.mod, max.vel = 1,
       if (is.null(depth.cost.list)) {
         depth.cost.d <- depth.cost.land
       } else {
-        # Shallowe depth of the previous and the current location
+        # Choose the shallowest depth among the locations to join
         min.depth <- floor(min(c(track.data$depth[loc], out$depth[n])))
         depth.cost.d <- depth.cost.list[[as.character(min.depth)]]
 
@@ -424,7 +424,8 @@ leastCostMap <- function(topo, min.depth = 0, max.depth = NULL) {
   # available cells
   suit <- raster::raster(topo)
   suit[topo <= min.depth] <- 1
-  suit[topo > min.depth & is.na(topo)] <- 1e-08
+  suit[topo > min.depth] <- 1e-08
+  suit[is.na(topo)] <- 1e-08
 
   if (!is.null(max.depth)) {
     suit[topo < -abs(max.depth)] <- 1e-08
