@@ -164,38 +164,21 @@ interpPath <- function(path, time.step = 2, max.lag = NULL) {
 
     path.sub <- path[chunks[i, 1]:chunks[i, 2], ]
 
-    # Remove starting predicted values
-    if (!is.null(path.sub$type)) {
-      indx.o <- range(which(path.sub$type == "original"))
-    } else {
-      indx.o <- c(1, nrow(path.sub))
-    }
+    times <- seq(path.sub$time.stamp[1],
+                 path.sub$time.stamp[nrow(path.sub)], time.step * 60)
 
-    # Stat the interpolation
-    if (length(indx.o) == 0) {
+    out.tab <- path.sub[match(times,
+                              lubridate::floor_date(path.sub$time.stamp,
+                                                    paste0(time.step,
+                                                           "mins"))), ]
 
-      return(NULL)
+    out.tab$time.stamp <- times
+    out.tab$x <- zoo::na.approx(out.tab$x)
+    out.tab$y <- zoo::na.approx(out.tab$y)
+    out.tab$depth <- zoo::na.approx(out.tab$depth)
 
-    } else {
+    return(out.tab)
 
-      path.sub <- path.sub[indx.o[1]:indx.o[length(indx.o)], ]
-
-      times <- seq(path.sub$time.stamp[1],
-                   path.sub$time.stamp[nrow(path.sub)], time.step * 60)
-
-      out.tab <- path.sub[match(times,
-                                lubridate::floor_date(path.sub$time.stamp,
-                                                      paste0(time.step,
-                                                             "mins"))), ]
-
-      out.tab$time.stamp <- times
-      out.tab$x <- zoo::na.approx(out.tab$x)
-      out.tab$y <- zoo::na.approx(out.tab$y)
-      out.tab$depth <- zoo::na.approx(out.tab$depth)
-
-      return(out.tab)
-
-    }
   })
 
   return(interp)
