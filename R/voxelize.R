@@ -164,6 +164,13 @@ interpPath <- function(path, time.step = 2, max.lag = NULL) {
 
     path.sub <- path[chunks[i, 1]:chunks[i, 2], ]
 
+    # Remove starting predicted values
+    if (!is.null(path.sub$type)) {
+      indx.o <- which(path.sub$type == "original")
+      if (length(indx.o) <= 1) return(NULL)
+      path.sub <- path.sub[indx.o[1]:indx.o[length(indx.o)], ]
+    }
+
     times <- seq(path.sub$time.stamp[1],
                  path.sub$time.stamp[nrow(path.sub)], time.step * 60)
 
