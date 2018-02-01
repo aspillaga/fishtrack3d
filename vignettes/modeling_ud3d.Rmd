@@ -362,7 +362,7 @@ head(synthetic.path[[1]])
 
 ```
 
-```{r_get_reconstr_from_simu, eval = TRUE, echo = FALSE}
+```{r get_reconstr_from_simu, eval = TRUE, echo = FALSE}
 
 # To avoid computing the simulations above, we take them directly from the
 # provided 'synt_path_x100' object
