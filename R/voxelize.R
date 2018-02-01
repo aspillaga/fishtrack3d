@@ -149,13 +149,13 @@ interpPath <- function(path, time.step = 2, max.lag = NULL) {
   units(diff) <- "hours"
   diff <- as.numeric(diff)
 
-  chunks <- cbind(1, length(diff))
+  chunks <- data.frame(cbind(1, length(diff)))
 
   if (!is.null(max.lag)) {
     indx <- which(diff > max.lag)
     if (length(indx) > 0) {
-      chunks <- cbind(c(1, indx + 1), c(indx, nrow(path)))
-      chunks <- as.array(chunks[chunks[, 2] - chunks[, 1] != 0, ])
+      chunks <- data.frame(cbind(c(1, indx + 1), c(indx, nrow(path))))
+      chunks <- chunks[chunks[, 2] - chunks[, 1] != 0, ]
     }
   }
 
