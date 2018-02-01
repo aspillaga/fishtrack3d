@@ -153,9 +153,9 @@ interpPath <- function(path, time.step = 2, max.lag = NULL) {
 
   if (!is.null(max.lag)) {
     indx <- which(diff > max.lag)
-    if (length(indx) > 1) {
+    if (length(indx) > 0) {
       chunks <- cbind(c(1, indx + 1), c(indx, nrow(path)))
-      chunks <- chunks[chunks[, 2] - chunks[, 1] != 0, ]
+      chunks <- as.array(chunks[chunks[, 2] - chunks[, 1] != 0, ])
     }
   }
 
