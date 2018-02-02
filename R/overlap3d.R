@@ -112,7 +112,8 @@ volOverlap <- function(ud1, ud2, level, symmetric = TRUE) {
          call. = FALSE)
   }
 
-  if (any(names(ud1) != names(ud2)) |
+  if (class(ud1) %in% c("RasterBrick", "RasterStack") &
+      any(names(ud1) != names(ud2)) |
       any(raster::res(ud1) != raster::res(ud2))) {
     stop("The two UDs must have the same resolution and extension.",
          call. = FALSE)
