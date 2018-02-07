@@ -31,7 +31,7 @@ volumeUD <- function(ud, ind.layer = FALSE) {
                "'RasterStack' or 'RasterBrick' object."), call. = FALSE)
   }
 
-  if (sum(values(ud)) != 1) {
+  if (round(sum(values(ud)), 7) != 1) {
     stop("All the UDs must sum 1.")
   }
 
