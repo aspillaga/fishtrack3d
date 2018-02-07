@@ -5,14 +5,24 @@
 #'
 #' @param ud a \code{RasterLayer} (2D), \code{RasterStack} or
 #'     \code{RasterBrick} (3D) object with UD values.
+#' @param ind.layers logical. If \code{TRUE}, the UD volume is calculated for
+#'     each layer separately (each layer in the raster belongs to a different
+#'     individual or a different time-period). If \code{FALSE} (the default),
+#'     UD volume is calculated taking into account all the layers (for UD-3D,
+#'     where all the layers correspond to different depth-intervals for the
+#'     same individual and time-period).
 #'
-#' @return a \code{RasterLayer} or a \code{RasterStack} object with the UD
+#' @return a \code{RasterLayer} or a \code{RasterStack} object with UD
 #'     probability volumes.
 #'
 #' @export
 #'
 #'
-volumeUD <- function(ud) {
+volumeUD <- function(ud, ind.layer = FALSE) {
+
+  if (ind.layer & nlayers(ud) > 1) {
+    return(stack(lapply(unstack(ud), volumeUD)))
+  }
 
   # Check if arguments are correct =============================================
   if (is.null(ud) | !class(ud) %in% c("RasterLayer", "RasterStack",
@@ -21,7 +31,10 @@ volumeUD <- function(ud) {
                "'RasterStack' or 'RasterBrick' object."), call. = FALSE)
   }
 
-  ud <- ud / sum(raster::values(ud))
+  if (sum(values(ud)) != 1) {
+    stop("All the UDs must sum 1.")
+  }
+
   rank <- (1:length(raster::values(ud)))[rank(raster::values(ud))]
   raster::values(ud) <- 1 - cumsum(sort(raster::values(ud)))[rank]
 
@@ -63,7 +76,6 @@ predictKde <- function(kde, raster, depths) {
     stop("The 'raster' object must be a 'RasterLayer' object.", call. = FALSE)
   }
 
-
   pred <- lapply(depths, function(d) {
     rast.t <- raster::raster(raster)
     raster::values(rast.t) <- predict(kde,
@@ -73,6 +85,7 @@ predictKde <- function(kde, raster, depths) {
   })
 
   pred <- raster::stack(pred)
+  pred <- pred / sum(raster::values(pred))
   names(pred) <- paste0("d", depths)
 
   return(pred)
