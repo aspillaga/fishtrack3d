@@ -121,24 +121,14 @@
 "viewshed"
 
 
-#' List of transition layers
-#'
-#' Explanation of the depth cost list
-#'
-#' @format A \code{list} of \code{TransitionLayer}, with one element for each
-#'     1 m depth-interval between 0 and 70 m, for the Medes Islands MPA. Each
-#'     \code{TransitionLayer} excludes the cells at depths shallower than the
-#'     depth-interval that defines each element in the list.
-#'
-#'
-"depth_cost_list"
-
-
-#' 100 synthetic random trajectories
-#'
-#' A list containing 100 random path realizations for each of the two common
-#' dentex individuals in the sample telemetry data (\link{tracking} object).
-#'
-#'
-"synt_path_x100"
-
+# List of transition layers
+#
+# Explanation of the depth cost list
+#
+# @format A \code{list} of \code{TransitionLayer}, with one element for each
+#     1 m depth-interval between 0 and 70 m, for the Medes Islands MPA. Each
+#     \code{TransitionLayer} excludes the cells at depths shallower than the
+#     depth-interval that defines each element in the list.
+#
+#
+# "depth_cost_list"

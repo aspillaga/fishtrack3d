@@ -4,14 +4,21 @@
 \alias{volumeUD}
 \title{Calculate utilization distribution probability volumes}
 \usage{
-volumeUD(ud)
+volumeUD(ud, ind.layer = FALSE)
 }
 \arguments{
 \item{ud}{a \code{RasterLayer} (2D), \code{RasterStack} or
 \code{RasterBrick} (3D) object with UD values.}
+
+\item{ind.layer}{logical. If \code{TRUE}, the UD volume is calculated for
+each layer separately (each layer in the raster belongs to a different
+individual or a different time-period). If \code{FALSE} (the default),
+UD volume is calculated taking into account all the layers (for UD-3D,
+where all the layers correspond to different depth-intervals for the
+same individual and time-period).}
 }
 \value{
-a \code{RasterLayer} or a \code{RasterStack} object with the UD
+a \code{RasterLayer} or a \code{RasterStack} object with UD
     probability volumes.
 }
 \description{

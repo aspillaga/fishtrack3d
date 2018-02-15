@@ -24,9 +24,10 @@ used later to calculate the shortest path between two points that avoids
 the excluded cells.
 }
 \examples{
+\dontrun{
 library(raster)
 dist.cost <- leastCostMap(bathymetry, min.depth = 30)
 plot(raster(dist.cost))
-
+}
 
 }

@@ -32,7 +32,8 @@ Suggests:
     maptools,
     rgl,
     rgrass7,
-    rmarkdown
+    rmarkdown,
+    testthat
 VignetteBuilder: knitr
 RoxygenNote: 6.0.1
 URL: http://github.com/aspillaga/fishtrack3d

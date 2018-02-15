@@ -52,14 +52,9 @@ text(receivers$long.utm, receivers$lat.utm, labels = receivers$id, pos = 4)
 
 \vspace{1.5em}
 
-Some additional objects, which are created in some steps during the application of the method, are also provided. Despite we provide all the code to create them, one may want to skip these steps when following this guide, as they are slow and memory consuming or require external software (like `GRASS`).
+One additional object, which is created in one steps during the application of the method, is also provided. Despite we provide all the code to create it, one may want to skip this step when following this guide, as it is slow and memory consuming or requires external software like `GRASS`.
 
 - **`viewshed`:** Raster map representing the pixels outside acoustic shadows and their horizontal distance to receivers. It is a `RasterStack` object with one layer for each receiver, and is generated using `GRASS` during the *Empirical characterization of detection probabilities* (Step 1.2).
-
-- **`depth_cost_list`:** A list of `TransitionLayer` objects indicating the cost of moving between adjacent raster cells. There is one `TransitionLayer` for each 1 m depth interval (from 0 to 70 m), which considers suitable only cells at depths equal to or greater than the assigned one, and excludes the cells at shallower depths.This object is generated with the `gdistance` package, and is used during the *Generation of random path realizations* (Step 2.2).
-
-- **`synt_path_x100`:** A list containing 100 random path realizations for each of the two common dentex individuals in the sample telemetry data (`tracking` object). This object is created during the *Simulation of synthetic path realizations* (Step 2.2).
-
 
 \vspace{1em}
 
@@ -321,7 +316,7 @@ The `syntPath` function generates synthetic path realization by sampling the geo
 
 \par
 
-**NOTE: **Running this piece of code is quite slow, so to follow this vignette you can skip this step and directly use the `depth_cost_list` object that is provided in the `fishtrack3d` package.
+**NOTE: **Running this piece of code is quite slow, if you want to follow this vignette only to to see how this method works, you can skip this step and run the `syntPath` function setting the `depth.cost.list` as `NULL`. By doing this, the resulting synthetic paths will avoid emerged land areas, but not the submerged ones.
 
 \vspace{1em}
 
@@ -339,9 +334,7 @@ names(depth_cost_list) <- 0:70
 
 \vspace{1em}
 
-
 Now, to see how the `syntPath` function works, we will apply it to the first 50 positions of our thinned tracks.
-
 
 \vspace{1em}
 
@@ -365,7 +358,8 @@ head(synthetic.path[[1]])
 ```{r get_reconstr_from_simu, eval = TRUE, echo = FALSE}
 
 # To avoid computing the simulations above, we take them directly from the
-# provided 'synt_path_x100' object
+# 'synt_path_x100' object
+load("./synt_path_x100.rda")
 synthetic.path <- lapply(synt_path_x100, function(l) {
   return(l[[1]][1:50, ])
 })
@@ -440,7 +434,7 @@ Arrived to this point, we are interested in generating a large number of stochas
 
 \par
 
-**NOTE: **This part of the code can take a long time. To follow this vignette you can skip this step and directly use the `synt_path_x100` object that is provided in the `fishtrack3d` the package.
+**NOTE: **This part of the code can take a long time. You can reduce the number of iterations or the number of locations to process to make it faster.
 
 \vspace{1.5em}
 

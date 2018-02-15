@@ -405,10 +405,11 @@ syntPath <- function(track.data, topo, dist.rec, ac.range.mod, max.vel = 1,
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' library(raster)
 #' dist.cost <- leastCostMap(bathymetry, min.depth = 30)
 #' plot(raster(dist.cost))
-#'
+#' }
 #'
 leastCostMap <- function(topo, min.depth = 0, max.depth = NULL) {
 
@@ -635,6 +636,7 @@ sampleCoord <- function(prob.raster, n = 1) {
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' library(raster)
 #'
 #' depth.cost <- leastCostMap(bathymetry, min.depth = 20, max.depth = 30)
@@ -651,6 +653,7 @@ sampleCoord <- function(prob.raster, n = 1) {
 #'
 #' points(rbind(from, to))
 #' lines(path)
+#' }
 #'
 #'
 shortPath <- function(from, to, depth.cost, simp.tol = 10) {

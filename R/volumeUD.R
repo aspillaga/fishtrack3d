@@ -5,7 +5,7 @@
 #'
 #' @param ud a \code{RasterLayer} (2D), \code{RasterStack} or
 #'     \code{RasterBrick} (3D) object with UD values.
-#' @param ind.layers logical. If \code{TRUE}, the UD volume is calculated for
+#' @param ind.layer logical. If \code{TRUE}, the UD volume is calculated for
 #'     each layer separately (each layer in the raster belongs to a different
 #'     individual or a different time-period). If \code{FALSE} (the default),
 #'     UD volume is calculated taking into account all the layers (for UD-3D,
