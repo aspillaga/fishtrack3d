@@ -4,7 +4,7 @@ knitr::opts_chunk$set(
   comment = ">"
 )
 
-## ----plot_bathy, echo = FALSE, fig.align = "center", fig.width = 5.5, fig.height = 5, warnings = FALSE, messages = FALSE----
+## ----plot_bathy, echo = TRUE, fig.align = "center", fig.width = 5.8, fig.height = 5, out.width = "70%", warnings = FALSE, messages = FALSE----
 library(fishtrack3d)
 library(raster)
 library(plyr)
@@ -14,24 +14,19 @@ plot(bathymetry, col = terrain.colors(100))
 points(receivers$long.utm, receivers$lat.utm, pch = 16, cex = 0.8)
 text(receivers$long.utm, receivers$lat.utm, labels = receivers$id, pos = 4)
 
-
 ## ----load_range-test-----------------------------------------------------
 head(range_test)
-
 
 ## ----glm-----------------------------------------------------------------
 range.mod <- glm(det.ratio ~ dist.m, data = range_test, 
                  family = quasibinomial(logit))
 
-
-## ----glm_plot, fig.align = "center", fig.height = 4, fig.width = 5-------
+## ----glm_plot, fig.align = "center", fig.height = 4.2, fig.width = 5.9, out.width = "80%"----
 plot(det.ratio ~ dist.m, data = range_test, xlim = c(0, 400),
      ylab = "Percentage of detections", 
      xlab = "Distance from receiver (m)")
-
 lines(1:400, predict(range.mod, data.frame(dist.m = 1:400), type = "response"),
       type = "l", col = "firebrick", lwd = 2)
-
 
 ## ----dist_shadow, eval = FALSE-------------------------------------------
 #  library(rgrass7)
@@ -42,6 +37,7 @@ lines(1:400, predict(range.mod, data.frame(dist.m = 1:400), type = "response"),
 #  elevation <- bathymetry
 #  elevation[is.na(elevation)] <- 1e+10
 #  elevation <- as(elevation, "SpatialPixelsDataFrame")
+#  
 #  
 #  # Initialize GRASS session
 #  initGRASS("/Applications/GRASS-7.0.app/Contents/MacOS/",
@@ -84,9 +80,8 @@ lines(1:400, predict(range.mod, data.frame(dist.m = 1:400), type = "response"),
 #  
 #  raster::names(viewshed) <- raster::validNames(receivers$id)
 #  viewshed <- raster::stack(viewshed)
-#  
 
-## ----viewshed_plot, echo = FALSE,  fig.align = "center", fig.height = 8, fig.width = 6.4----
+## ----viewshed_plot, echo = FALSE,  fig.align = "center", fig.height = 7.8, fig.width = 6----
 library(raster)
 
 # Plot the islands
@@ -99,14 +94,12 @@ for (i in names(viewshed)) {
   image(viewshed[[i]], axes = FALSE, ann = FALSE, asp = 1)
   indx <- validNames(receivers$id) == i
   image(islands, col = tCol("black", 40), add = TRUE)
-  
   points(receivers[indx, 2:3], pch = 16, cex = 2)
   text(receivers[indx, 2:3], labels = receivers$id[indx], pos = 4, cex = 2)
   bbox <- bbox(viewshed)
   rect(xleft = bbox[1, 1], xright = bbox[1, 2], ybottom = bbox[2, 1], 
        ytop = bbox[2, 2])
 }
-
 
 ## ----data_load, eval = TRUE, warning = FALSE-----------------------------
 head(tracking)
@@ -118,7 +111,6 @@ tracking.list <- split(tracking, tracking$tag.id)
 # Names of the individuals
 names(tracking.list)
 
-
 ## ----30minTable, eval = TRUE, message = FALSE----------------------------
 t30min <- lapply(tracking.list, thinData, time.int = "30min")
 
@@ -126,43 +118,30 @@ t30min <- lapply(tracking.list, thinData, time.int = "30min")
 t30min.2 <- lapply(tracking.list, thinData, time.int = "30min")
 
 head(t30min[["dentex18"]])
+
 head(t30min.2[["dentex18"]])
 
-
-## ----spatialCronoPlot, eval = TRUE, echo = TRUE, message = FALSE, fig.align = "center", fig.width = 7, fig.height = 6----
+## ----spatialCronoPlot, eval = TRUE, echo = TRUE, message = FALSE, fig.align = "center", fig.width = 8.8, fig.height = 7, out.width="70%", dev="png"----
 par(mfrow = c(2, 1), mar = c(3.1, 4.1, 3.1, 5.1))
-
 for (i in names(tracking.list)) {
-  
   t30.tmp <- list(t30min[[i]], t30min.2[[i]])
-  
   for(x in 1:length(t30.tmp)) {
-    
     spatChronPlot(time.stamp = t30.tmp[[x]]$time.stamp,
                   rec.id = factor(t30.tmp[[x]]$rec.id, levels = receivers$id))
-    
     title(main = paste(i, "- Simulation", x))
-    
   }
 }
-    
 
-## ----depth, eval = TRUE, echo = TRUE, fig.align = "center", fig.width = 7, fig.height = 6----
-par(mfrow = c(2, 1), mar = c(3.1, 4.6, 3.1, 2.1))
-
+## ----depth, eval = TRUE, echo = TRUE, fig.align = "center", fig.width = 6.8, fig.height = 5, out.width="75%"----
+par(mfrow = c(2, 1), mar = c(3.1, 4.6, 2.1, 2.1))
 for (i in names(tracking.list)) {
-  
   plot(t30min[[i]]$time.stamp, -t30min[[i]]$depth, type = "l",
        xlab = "Date", ylab = "Depth (m)", col = tCol("black", 40), main = i)
-  
   lines(t30min.2[[i]]$time.stamp, -t30min.2[[i]]$depth, 
         col = tCol("firebrick", 40))
-  
   legend("bottomleft", legend = c("Simulation 1", "Simulation 2"), cex = 0.9,
          col = tCol(c("black", "firebrick"), 40), lty = 1, bty = "n")
-  
 }
-
 
 ## ----depth_cost_matrix, echo = TRUE, eval = FALSE------------------------
 #  # Select depth intervals to compute the matrix
@@ -173,7 +152,6 @@ for (i in names(tracking.list)) {
 #  })
 #  
 #  names(depth_cost_list) <- 0:70
-#  
 
 ## ----path_reconstrunction, eval = FALSE, message = FALSE-----------------
 #  synthetic.path <- lapply(t30min, function(data.frame) {
@@ -185,13 +163,11 @@ for (i in names(tracking.list)) {
 #    path <- syntPath(track.data = df, topo = bathymetry, dist.rec = viewshed,
 #                     ac.range.mod = range.mod, depth.cost.list = depth_cost_list,
 #                     max.vel = 1, check = F)
-#  
 #  })
 #  
 #  head(synthetic.path[[1]])
-#  
 
-## ----get_reconstr_from_simu, eval = TRUE, echo = FALSE-------------------
+## ----get_reconstr_from_simu, eval = TRUE, include = FALSE----------------
 
 # To avoid computing the simulations above, we take them directly from the
 # 'synt_path_x100' object
@@ -202,21 +178,20 @@ synthetic.path <- lapply(synt_path_x100, function(l) {
 
 head(synthetic.path[[1]])
 
-## ----path_plot2D, eval = TRUE, fig.align = "center", fig.width = 5.5, fig.height = 5----
+## ----path_plot2D, eval = TRUE, fig.align = "center", fig.width = 5.2, fig.height = 4.8----
 # Plot in two dimensions
 #========================
 image(bathymetry, col = terrain.colors(50), asp = 1, ann = FALSE, 
       axes = FALSE)
 lines(synthetic.path[[1]][, c("x", "y")], col = "firebrick", lwd = 1.2)
 lines(synthetic.path[[2]][, c("x", "y")], col = "dodgerblue", lwd = 1.2)
-legend("topright", legend = names(synthetic.path), bty = "n", lty = 1,
+legend("topright", legend = names(synthetic.path), lty = 1, bg = "white",
        col = c("firebrick", "dodgerblue"))
 
-
 ## ----path_plot3D, eval = FALSE-------------------------------------------
+#  
 #  # Plot in three dimensions (with the 'rgl' package)
 #  #===================================================
-#  
 #  library(rgl)
 #  
 #  # Create the matrix to plot the bathymetry
@@ -244,7 +219,6 @@ legend("topright", legend = names(synthetic.path), bty = "n", lty = 1,
 #          z = -synthetic.path[[1]]$depth, lwd = 2, col = "firebrick")
 #  lines3d(x = synthetic.path[[2]]$x, y = synthetic.path[[2]]$y,
 #          z = -synthetic.path[[2]]$depth, lwd = 2, col = "dodgerblue")
-#  
 
 ## ----3d_path_vis, eval = FALSE, echo = FALSE-----------------------------
 #  rgl.snapshot("./3d_traj.png", fmt = "png", top = TRUE)
@@ -267,23 +241,20 @@ legend("topright", legend = names(synthetic.path), bty = "n", lty = 1,
 #                                 dist.rec = viewshed, ac.range.mod = range.mod,
 #                                 depth.cost.list = depth_cost_list, max.vel = 1)
 #      return(synthetic.path)
-#  
 #    })
 #  })
-#  
 
 ## ----voxelization, eval = FALSE------------------------------------------
 #  rast3d.list <- lapply(synt_path_x100, function(s) {
 #    voxelize(synt.list = s, raster = bathymetry, depth.int = 0:69, max.lag = 24)
 #  })
-#  
 
 ## ----save_rast3d_list, eval = FALSE, echo = FALSE------------------------
 #  # We can save the 'rast3d' object so we do not have to create it every time we
 #  # compile the vignette
 #  save(rast3d.list, file = "./rast3d_list.rda", compress = "xz")
 
-## ----raster_plot, eval = TRUE, echo = FALSE, fig.align = "center", fig.width = 7, fig.height = 4----
+## ----raster_plot, eval = TRUE, echo = FALSE, fig.align = "center", fig.width = 6, fig.height = 3.5----
 load("./rast3d_list.rda")
 
 par(mfrow = c(2, 3), mar = c(0.1, 0.1, 1.4, 0.1), oma = c(1, 1, 1, 2))
@@ -293,24 +264,17 @@ l_ply(1:length(rast3d.list), function(r) {
   # We find the layer with the biggest probability
   depths <- names(rast3d.list[[r]])[which.max(cellStats(rast3d.list[[r]], 
                                                         sum)) - c(2, 0, -2)]
-  
   lim <- range(values(rast3d.list[[r]][[depths]]))
   
   l_ply(depths, function(d) {
-    
      legend <- ifelse(d == depths[length(depths)], TRUE, FALSE)
-  
      plot(rast3d.list[[r]][[d]], zlim = lim, 
           main = paste(names(rast3d.list)[[r]], d, "m"), legend = legend, 
           axes = FALSE, box = FALSE)
-
      lim <- bbox(rast3d.list[[r]][[d]])
-  
      rect(lim[1, 1], lim[2, 1], lim[1, 2], lim[2, 2])
-    
   })
 })
-
 
 ## ----kde, eval = FALSE---------------------------------------------------
 #  library(ks)
@@ -327,11 +291,8 @@ l_ply(1:length(rast3d.list), function(r) {
 #  
 #    # Kernel density estimation
 #    kde.tmp <- kde(x = table[, 1:3], w = table$val, compute.cont = FALSE)
-#  
 #    return(kde.tmp)
-#  
 #  })
-#  
 
 ## ----save_kde, eval = FALSE, echo = FALSE--------------------------------
 #  # We can save the 'kde' object so we do not have to create it every time we
@@ -370,7 +331,6 @@ load("./kde_list.rda")
 #       col.fun = topo.colors, box = FALSE)
 #  plot(kde.list[[2]], cont = c(25, 75), add = TRUE, axes = FALSE,
 #       col.fun = heat.colors, box = FALSE)
-#  
 
 ## ----save_kde_plot, echo = FALSE, eval = FALSE---------------------------
 #  rgl.snapshot("./3d_contour.png", fmt = "png", top = TRUE)
@@ -378,13 +338,10 @@ load("./kde_list.rda")
 ## ----volumeUD, message = FALSE-------------------------------------------
 # Compute UD volumes
 ud.vol.list <- llply(kde.list, function(k) {
-  
     rast.tmp <- predictKde(kde = k, raster = bathymetry, depths = 0.5:69.5)
     rast.tmp <- volumeUD(rast.tmp)
     return(rast.tmp)
-    
 })
-
 
 ## ----paraview, message = FALSE, eval = FALSE-----------------------------
 #  # Tables to import into paraview
@@ -396,29 +353,24 @@ ud.vol.list <- llply(kde.list, function(k) {
 #      return(cbind(cont.tab[, 1:2], depth = colnames(cont.tab)[n],
 #                   vol = cont.tab[, n]))
 #    })
+#  
 #    cont.tab$depth <- -as.numeric(substr(cont.tab$depth, start = 2, stop = 6))
-#  
 #    return(cont.tab)
-#  
 #  })
-#  
 #  
 #  # Save the tables to import in paraview
 #  for (i in names(contour.table)) {
 #    write.csv(contour.table[[i]], row.names = FALSE,
 #              file = paste0("../", i, ".csv"))
 #  }
-#  
 
 ## ----overlap, message = FALSE--------------------------------------------
 overlap.50 <- overlap3d(ud.vol.list, level = 0.5, symmetric = FALSE)
 overlap.95 <- overlap3d(ud.vol.list, level = 0.95, symmetric = FALSE)
 
-# In this case, UD volumes are not overlapped at the 
-# 50% contour level...
+## ----overlap50-----------------------------------------------------------
 overlap.50
 
-# But they slightly overlap at 95% contour level
+## ----overlap95-----------------------------------------------------------
 overlap.95
-
 

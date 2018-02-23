@@ -1,8 +1,14 @@
 ---
 title: "Modelling 3D utilization distributions for acoustic telemetry data in R"
-author: "Eneko Aspillaga"
-date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+author: "Eneko Aspillaga, Kamran Safi, Bernat Hereu, and Frederic Bartumeus"
+date: "`r format(Sys.time(), '%B %Y')`"
+output: 
+  rmarkdown::html_vignette:
+  pdf_document:
+    highlight: tango
+    fig_caption: false
+fontsize: 11pt
+classoption: a4paper
 vignette: >
   %\VignetteIndexEntry{Modelling 3D utilization distributions for acoustic telemetry data in R}
   %\VignetteEngine{knitr::rmarkdown}
@@ -16,6 +22,7 @@ knitr::opts_chunk$set(
 )
 ```
 
+\vspace{3em}
 
 # Introduction
 
@@ -24,7 +31,7 @@ This document is a step-by-step guide to estimate 3D utilization distributions (
 
 ##  Sample dataset
 
-All the neccesary functions and a sample dataset are distributed together with the `fishtrack3d` package [GitHub link].
+All the neccesary functions and a sample dataset are distributed together with the `fishtrack3d` package (<https://github.com/aspillaga/fishtrack3d>).
 
 The following data objects are provided:
 
@@ -36,9 +43,9 @@ The following data objects are provided:
 
 - **`range_test`:** Data from an acoustic range test performed in the study area. The data frame contains the hourly percentages of signals detected by receivers placed at different distances from one acoustic transmitter during a 24 h period.
 
-\vspace{1.5em}
+\vspace{2em}
 
-```{r plot_bathy, echo = FALSE, fig.align = "center", fig.width = 5.5, fig.height = 5, warnings = FALSE, messages = FALSE}
+```{r plot_bathy, echo = TRUE, fig.align = "center", fig.width = 5.8, fig.height = 5, out.width = "70%", warnings = FALSE, messages = FALSE}
 library(fishtrack3d)
 library(raster)
 library(plyr)
@@ -47,16 +54,13 @@ library(ks)
 plot(bathymetry, col = terrain.colors(100))
 points(receivers$long.utm, receivers$lat.utm, pch = 16, cex = 0.8)
 text(receivers$long.utm, receivers$lat.utm, labels = receivers$id, pos = 4)
-
 ```
 
-\vspace{1.5em}
+\vspace{1em}
 
-One additional object, which is created in one steps during the application of the method, is also provided. Despite we provide all the code to create it, one may want to skip this step when following this guide, as it is slow and memory consuming or requires external software like `GRASS`.
+One additional object, which is created in one steps during the application of the method, is also provided. Despite we provide all the code to create it, one may want to skip this step when following this guide, as it requires the external software `GRASS`.
 
 - **`viewshed`:** Raster map representing the pixels outside acoustic shadows and their horizontal distance to receivers. It is a `RasterStack` object with one layer for each receiver, and is generated using `GRASS` during the *Empirical characterization of detection probabilities* (Step 1.2).
-
-\vspace{1em}
 
 
 # General overview of the method
@@ -81,41 +85,38 @@ The probability of detecting an acoustic signal decreases when increasing the di
 
 The `range_test` data frame contains data from one range test performed in the study site in 2013. The data frame represents the ratio of signals detected (`det.ratio`) by receivers (`rec.id`) at different distances (`dist.m`) during one hour intervals.
 
-\vspace{0.5em}
+\vspace{2em}
 
 ```{r load_range-test}
 head(range_test)
-
 ```
 
-\vspace{0.5em}
+\vspace{2em}
 
 We adjust a logistic regression model to get the probability distribution of being detected as function of the distance.
 
-\vspace{1em}
+\vspace{2em}
 
 ```{r glm}
 range.mod <- glm(det.ratio ~ dist.m, data = range_test, 
                  family = quasibinomial(logit))
-
 ```
 
-\vspace{1em}
+\vspace{2em}
 
 We can plot the data to see the fit of the function:
 
-\vspace{1em}
+\vspace{2em}
 
-```{r glm_plot, fig.align = "center", fig.height = 4, fig.width = 5}
+```{r glm_plot, fig.align = "center", fig.height = 4.2, fig.width = 5.9, out.width = "80%"}
 plot(det.ratio ~ dist.m, data = range_test, xlim = c(0, 400),
      ylab = "Percentage of detections", 
      xlab = "Distance from receiver (m)")
-
 lines(1:400, predict(range.mod, data.frame(dist.m = 1:400), type = "response"),
       type = "l", col = "firebrick", lwd = 2)
-
 ```
 
+\vspace{2em}
 
 ### 1.2. Acoustic shadows
 
@@ -127,8 +128,7 @@ At the same time, we will calculate the lineal distance (in 2D) between each rec
 
 **NOTE: **Setting `GRASS` to work within `R` might not be very straightforward. You can skip this step if you are going to follow this vignette only with the example dataset, as the result of this step, the object `viewshed`, is already provided in the `fishtrack3d` package. But if you want to use your own telemetry and topography data, I encourage you (and wish you good luck) to make `R`, `GRASS` and `rgeos` understand each other!
 
-
-\vspace{1em}
+\vspace{2em}
 
 ```{r dist_shadow, eval = FALSE}
 library(rgrass7)
@@ -139,6 +139,7 @@ library(rgrass7)
 elevation <- bathymetry
 elevation[is.na(elevation)] <- 1e+10
 elevation <- as(elevation, "SpatialPixelsDataFrame")
+
 
 # Initialize GRASS session
 initGRASS("/Applications/GRASS-7.0.app/Contents/MacOS/",
@@ -181,16 +182,15 @@ viewshed <- lapply(receivers$id, function(i) {
 
 raster::names(viewshed) <- raster::validNames(receivers$id)
 viewshed <- raster::stack(viewshed)
-
 ```
 
-\vspace{0.5em}
+\vspace{2em}
 
 This is how the viewshed analysis looks like for each receiver. The yellowish the colour, the greater the distance from the receiver. White parts of the plots represent acoustic shadows caused by emerged landmasses (in grey):
 
-\vspace{0.8em}
+\vspace{2em}
 
-```{r viewshed_plot, echo = FALSE,  fig.align = "center", fig.height = 8, fig.width = 6.4}
+```{r viewshed_plot, echo = FALSE,  fig.align = "center", fig.height = 7.8, fig.width = 6}
 library(raster)
 
 # Plot the islands
@@ -203,14 +203,12 @@ for (i in names(viewshed)) {
   image(viewshed[[i]], axes = FALSE, ann = FALSE, asp = 1)
   indx <- validNames(receivers$id) == i
   image(islands, col = tCol("black", 40), add = TRUE)
-  
   points(receivers[indx, 2:3], pch = 16, cex = 2)
   text(receivers[indx, 2:3], labels = receivers$id[indx], pos = 4, cex = 2)
   bbox <- bbox(viewshed)
   rect(xleft = bbox[1, 1], xright = bbox[1, 2], ybottom = bbox[2, 1], 
        ytop = bbox[2, 2])
 }
-
 ```
 
 
@@ -218,7 +216,7 @@ for (i in names(viewshed)) {
 
 The provided object `tracking` contains acoustic telemetry data of two common dentex (*Dentex dentex*) individuals in the Medes Islands marine protected area. The object is a data frame where each row corresponds to one signal. The `rec.id` column indicates the ID of the receiver that detected each signal, and the `tag.id` column the ID of the detected individual (in this case there are two individuals, `dentex18` and `dentex43`). `time.stamp` and `depth` columns indicate, respetively, the date and time (in UTC) and the depth of the fish when the detection occurred. In total, the data frame contains 61,528 detections that took place between October 1 and December 31 2007. For this experiment, transmitters were programmed to emit signals at random intervals between 80 and 180 seconds (to reduce the probability of collision between signals).
 
-\vspace{0.5em}
+\vspace{2em}
 
 ```{r data_load, eval = TRUE, warning = FALSE}
 head(tracking)
@@ -229,17 +227,15 @@ tracking.list <- split(tracking, tracking$tag.id)
 
 # Names of the individuals
 names(tracking.list)
-
 ```
 
-\vspace{0.5em}
-
+\vspace{1em}
 
 ### 2.1 Thin telemetry data
 
 In this first step, we will thin acoustic telemetry data into 30-minute intervals using the `thinData` function. This function aggregates the data in regular time intervals, and then assigns to each one a receiver and a depth value. The receiver is randomly selected among the receivers that detected the individual within a time-interval, weighted with the amount of detections in each receiver. The depth value is sampled from a probability distribution of the depth values that where registered during the same time interval. This procedure allows to reduce the number of data to be processed, and hence the computation time, but maintains the variability of the original data. 
 
-\vspace{0.5em}
+\vspace{2.5em}
 
 ```{r 30minTable, eval = TRUE, message = FALSE}
 t30min <- lapply(tracking.list, thinData, time.int = "30min")
@@ -248,60 +244,45 @@ t30min <- lapply(tracking.list, thinData, time.int = "30min")
 t30min.2 <- lapply(tracking.list, thinData, time.int = "30min")
 
 head(t30min[["dentex18"]])
-head(t30min.2[["dentex18"]])
 
+head(t30min.2[["dentex18"]])
 ```
 
-\vspace{0.5em}
+\vspace{1.5em}
 
-We can also make some plots to compare the receivers in two different thinned data frames.
+We can make some plots to compare the receivers in two different thinned data frames.
 
-\vspace{0.5em}
+\vspace{1.5em}
 
-```{r spatialCronoPlot, eval = TRUE, echo = TRUE, message = FALSE, fig.align = "center", fig.width = 7, fig.height = 6}
+```{r spatialCronoPlot, eval = TRUE, echo = TRUE, message = FALSE, fig.align = "center", fig.width = 8.8, fig.height = 7, out.width="70%", dev="png"}
 par(mfrow = c(2, 1), mar = c(3.1, 4.1, 3.1, 5.1))
-
 for (i in names(tracking.list)) {
-  
   t30.tmp <- list(t30min[[i]], t30min.2[[i]])
-  
   for(x in 1:length(t30.tmp)) {
-    
     spatChronPlot(time.stamp = t30.tmp[[x]]$time.stamp,
                   rec.id = factor(t30.tmp[[x]]$rec.id, levels = receivers$id))
-    
     title(main = paste(i, "- Simulation", x))
-    
   }
 }
-    
 ```
-
-\vspace{2.5em}
-
-We can also see the comparison between depth values from two thinned data frames.
 
 \vspace{1.5em}
 
-```{r depth, eval = TRUE, echo = TRUE, fig.align = "center", fig.width = 7, fig.height = 6}
-par(mfrow = c(2, 1), mar = c(3.1, 4.6, 3.1, 2.1))
+We can also see the comparison between depth values from the two thinned data frames.
 
+\vspace{1em}
+
+```{r depth, eval = TRUE, echo = TRUE, fig.align = "center", fig.width = 6.8, fig.height = 5, out.width="75%"}
+par(mfrow = c(2, 1), mar = c(3.1, 4.6, 2.1, 2.1))
 for (i in names(tracking.list)) {
-  
   plot(t30min[[i]]$time.stamp, -t30min[[i]]$depth, type = "l",
        xlab = "Date", ylab = "Depth (m)", col = tCol("black", 40), main = i)
-  
   lines(t30min.2[[i]]$time.stamp, -t30min.2[[i]]$depth, 
         col = tCol("firebrick", 40))
-  
   legend("bottomleft", legend = c("Simulation 1", "Simulation 2"), cex = 0.9,
          col = tCol(c("black", "firebrick"), 40), lty = 1, bty = "n")
-  
 }
-
 ```
-
-\vspace{1.5em}
 
 
 ### 2.2. Sampling synthetic path realizations
@@ -312,13 +293,13 @@ The `syntPath` function generates synthetic path realization by sampling the geo
 
 - **Distance from the previous sampled coordinates: **In order to avoid unlikely movements between distant locations in short periods of time, the sampling of a pair of coordinates is restricted to a certain distance around the previous position. This is especially useful if the fish is moving halfway between two receivers and detections rapidly alternate from one to the other, which could led to extremely rapid movements between the extremes of the two acoustic ranges. In this case, by restricting the maximum distance, the position of the individual will be forced to be closer to the space between receivers. The maximum distance is defined using the `max.vel` argument of the `syntPath` function, which limits the average maximum speed (in m·s^-1^) that the fish is assumed to reach along the synthetic trajectory. Therefore, taking into account the `max.vel` value and the elapsed time from the previous detection, a maximum distance is determined, beyond wich the probability of detecting the individual is set to zero. To consider this distance, the shortest distances from the previous location to the rest of the raster cells is calculated taking into account and avoiding the landmasses.
 
-- **Shortest path between sampled coordinates: **After sampling two pairs of coordinates, the function finds the shortest path connecting them taking into account the topography. By default, the only restriction to compute the shortest path is not to cross land areas. However, if the `depth.cost.list` argument is provided, the paths will not cross cells shallower than the minimum depth of the points to join. The object given to `depth.cost.list` must contain a list with one element for each 1 m depth interval (between 0 and the maximum depth of the study area). Each element in that object is a \code{TransitionLayer}, generated with the `gdistance` package, which excludes all the cells placed in areas shallower than the depth that gives the name to the element in the list. The `depth.cost.list` object can be created using the `leastCostMap` function as in the following code. 
+- **Shortest path between sampled coordinates: **After sampling two pairs of coordinates, the function finds the shortest path connecting them taking into account the topography. By default, the only restriction to compute the shortest path is not to cross land areas. However, if the `depth.cost.list` argument is provided, the paths will not cross cells shallower than the minimum depth of the points to join. The object given to `depth.cost.list` must contain a list with one element for each 1 m depth interval (between 0 and the maximum depth of the study area). Each element in that object is a `TransitionLayer`, generated with the `gdistance` package, which excludes all the cells placed in areas shallower than the depth that gives the name to the element in the list. The `depth.cost.list` object can be created using the `leastCostMap` function as in the following code. 
 
 \par
 
 **NOTE: **Running this piece of code is quite slow, if you want to follow this vignette only to to see how this method works, you can skip this step and run the `syntPath` function setting the `depth.cost.list` as `NULL`. By doing this, the resulting synthetic paths will avoid emerged land areas, but not the submerged ones.
 
-\vspace{1em}
+\vspace{2em}
 
 ```{r depth_cost_matrix, echo = TRUE, eval = FALSE}
 # Select depth intervals to compute the matrix
@@ -329,14 +310,13 @@ depth_cost_list <- lapply(depths, function(x) {
 })
 
 names(depth_cost_list) <- 0:70
-
 ```
 
-\vspace{1em}
+\vspace{2em}
 
 Now, to see how the `syntPath` function works, we will apply it to the first 50 positions of our thinned tracks.
 
-\vspace{1em}
+\vspace{2em}
 
 ```{r path_reconstrunction, eval = FALSE, message = FALSE}
 synthetic.path <- lapply(t30min, function(data.frame) {
@@ -348,14 +328,12 @@ synthetic.path <- lapply(t30min, function(data.frame) {
   path <- syntPath(track.data = df, topo = bathymetry, dist.rec = viewshed, 
                    ac.range.mod = range.mod, depth.cost.list = depth_cost_list,
                    max.vel = 1, check = F)
-
 })
 
 head(synthetic.path[[1]])
-
 ```
 
-```{r get_reconstr_from_simu, eval = TRUE, echo = FALSE}
+```{r get_reconstr_from_simu, eval = TRUE, include = FALSE}
 
 # To avoid computing the simulations above, we take them directly from the
 # 'synt_path_x100' object
@@ -367,30 +345,29 @@ synthetic.path <- lapply(synt_path_x100, function(l) {
 head(synthetic.path[[1]])
 ```
 
-\vspace{1em}
+\vspace{2em}
 
 The resulting data.frame adds the sampled `x` and `y` coordinates to the acoustic telemetry data. Moreover, it interpolates the additional coordinates that define the shortest paths between locations around land barriers. The `type` column indicates if the location correspond to one of the receivers in the initial dataset (`original`) or if it has been interpolated (`interp`).
 
 Now we can take a look at the path in two and three dimensions:
 
-\vspace{1em}
+\vspace{2em}
 
-```{r path_plot2D, eval = TRUE, fig.align = "center", fig.width = 5.5, fig.height = 5}
+```{r path_plot2D, eval = TRUE, fig.align = "center", fig.width = 5.2, fig.height = 4.8}
 # Plot in two dimensions
 #========================
 image(bathymetry, col = terrain.colors(50), asp = 1, ann = FALSE, 
       axes = FALSE)
 lines(synthetic.path[[1]][, c("x", "y")], col = "firebrick", lwd = 1.2)
 lines(synthetic.path[[2]][, c("x", "y")], col = "dodgerblue", lwd = 1.2)
-legend("topright", legend = names(synthetic.path), bty = "n", lty = 1,
+legend("topright", legend = names(synthetic.path), lty = 1, bg = "white",
        col = c("firebrick", "dodgerblue"))
-
 ```
 
 ```{r path_plot3D, eval = FALSE}
+
 # Plot in three dimensions (with the 'rgl' package)
 #===================================================
-
 library(rgl)
 
 # Create the matrix to plot the bathymetry
@@ -418,17 +395,15 @@ lines3d(x = synthetic.path[[1]]$x, y = synthetic.path[[1]]$y,
         z = -synthetic.path[[1]]$depth, lwd = 2, col = "firebrick")
 lines3d(x = synthetic.path[[2]]$x, y = synthetic.path[[2]]$y, 
         z = -synthetic.path[[2]]$depth, lwd = 2, col = "dodgerblue")
-
 ```
 
 ``` {r 3d_path_vis, eval = FALSE, echo = FALSE}
 rgl.snapshot("./3d_traj.png", fmt = "png", top = TRUE)
 ```
 
+![](./3d_traj.png){width=80%}
 
-![3D path realizations](./3d_traj.png)
-
-\vspace{0.5em}
+\vspace{3em}
 
 Arrived to this point, we are interested in generating a large number of stochastic trajectories from our original radiotracking data. We will do this by applying the `thinData` and the `synthPath` functions sequentially, as many times as synthetic trajectories we want. We can do this process using parallel computing with the `llply` function of the `plyr` package.
 
@@ -436,7 +411,7 @@ Arrived to this point, we are interested in generating a large number of stochas
 
 **NOTE: **This part of the code can take a long time. You can reduce the number of iterations or the number of locations to process to make it faster.
 
-\vspace{1.5em}
+\vspace{2em}
 
 ``` {r simulations, eval = FALSE}
 library(doMC)
@@ -456,10 +431,8 @@ synt_path_x100 <- lapply(tracking.list, function(df) {
                                dist.rec = viewshed, ac.range.mod = range.mod, 
                                depth.cost.list = depth_cost_list, max.vel = 1)
     return(synthetic.path)
-    
   })
 })
-
 ```
 
 
@@ -469,13 +442,12 @@ In this step, we are going to merge all the synthetic paths to generate a 3D uti
 
 The `voxelize` function first divides each path into a large number of points, in order to ensure that there will be points falling in each of the voxels that have been crossed by the trajectory. Then, it calculates the proportion of points that fell within each voxel for each synthetic trajetory. Finally, it calculates the average proportions for all the synthetic paths. The resulting object is a `RasterStack` object, with one layer for each depth interval.
 
-\vspace{0.8em}
+\vspace{2em}
 
 ``` {r voxelization, eval = FALSE}
 rast3d.list <- lapply(synt_path_x100, function(s) {
   voxelize(synt.list = s, raster = bathymetry, depth.int = 0:69, max.lag = 24)
 })
-
 ```
 
 ``` {r save_rast3d_list, eval = FALSE, echo = FALSE}
@@ -484,13 +456,13 @@ rast3d.list <- lapply(synt_path_x100, function(s) {
 save(rast3d.list, file = "./rast3d_list.rda", compress = "xz")
 ```
 
-\vspace{0.8em}
+\vspace{2em}
 
 The next image shows the result for six different depth ranges:
 
-\vspace{0.8em}
+\vspace{2em}
 
-```{r raster_plot, eval = TRUE, echo = FALSE, fig.align = "center", fig.width = 7, fig.height = 4}
+```{r raster_plot, eval = TRUE, echo = FALSE, fig.align = "center", fig.width = 6, fig.height = 3.5}
 load("./rast3d_list.rda")
 
 par(mfrow = c(2, 3), mar = c(0.1, 0.1, 1.4, 0.1), oma = c(1, 1, 1, 2))
@@ -500,31 +472,24 @@ l_ply(1:length(rast3d.list), function(r) {
   # We find the layer with the biggest probability
   depths <- names(rast3d.list[[r]])[which.max(cellStats(rast3d.list[[r]], 
                                                         sum)) - c(2, 0, -2)]
-  
   lim <- range(values(rast3d.list[[r]][[depths]]))
   
   l_ply(depths, function(d) {
-    
      legend <- ifelse(d == depths[length(depths)], TRUE, FALSE)
-  
      plot(rast3d.list[[r]][[d]], zlim = lim, 
           main = paste(names(rast3d.list)[[r]], d, "m"), legend = legend, 
           axes = FALSE, box = FALSE)
-
      lim <- bbox(rast3d.list[[r]][[d]])
-  
      rect(lim[1, 1], lim[2, 1], lim[1, 2], lim[2, 2])
-    
   })
 })
-
 ```
 
-\vspace{1em}
+\vspace{2em}
 
 In this last step, we are going to generate smooth UD contours by applying a 3D kernel density estimation to the values calculated for each voxel. First, we have to convert the `RasterStack` object into a data frame with the x, y, and z coordinates and the average time of the paths crossing each voxel. Then, we apply the `kde` function from the `ks` package to get the three-dimensional kernel density distribution. We let the `kde` function to set the kernel bandwidth values according to its optimization algorithms. 
 
-\vspace{0.5em}
+\vspace{1.5em}
 
 ```{r kde, eval = FALSE}
 library(ks)
@@ -541,11 +506,8 @@ kde.list <- lapply(rast3d.list, function(r) {
   
   # Kernel density estimation
   kde.tmp <- kde(x = table[, 1:3], w = table$val, compute.cont = FALSE)
-  
   return(kde.tmp)
-  
 })
-
 ```
 
 ``` {r save_kde, eval = FALSE, echo = FALSE}
@@ -558,11 +520,11 @@ save(kde.list, file = "./kde.rda", compress = "xz")
 load("./kde_list.rda")
 ```
 
-\vspace{0.5em}
+\vspace{1.5em}
 
 We can compute and plot the 3D-UD contours using the `rgl` package. This example shows the 50% and the 90% UD contours for the two individuals in the example dataset.
 
-\vspace{0.5em}
+\vspace{2em}
 
 ```{r plot_kde, eval = FALSE, echo = TRUE}
 library(rgl)
@@ -593,39 +555,35 @@ plot(kde.list[[1]], cont = c(25, 75), add = TRUE, axes = FALSE,
      col.fun = topo.colors, box = FALSE)
 plot(kde.list[[2]], cont = c(25, 75), add = TRUE, axes = FALSE, 
      col.fun = heat.colors, box = FALSE)
-
 ```
 
 ``` {r save_kde_plot, echo = FALSE, eval = FALSE}
 rgl.snapshot("./3d_contour.png", fmt = "png", top = TRUE)
 ```
 
-![50% and 90% contours (inner and outer volumes) for the two individuals (different color tonalities)](./3d_contour.png)
+![](./3d_contour.png){width=80%}
 
-\vspace{0.5em}
+\vspace{1.5em}
 
 This last part of code applies the `volumeUD` function to compute the UD volumes from 3D-UD estimations. Before, we have to predict the values of the `kde` to our spatial grid using the `predictKde` function.
 
-\vspace{0.5em}
+\vspace{2em}
 
 ```{r volumeUD, message = FALSE}
 # Compute UD volumes
 ud.vol.list <- llply(kde.list, function(k) {
-  
     rast.tmp <- predictKde(kde = k, raster = bathymetry, depths = 0.5:69.5)
     rast.tmp <- volumeUD(rast.tmp)
     return(rast.tmp)
-    
 })
-
 ```
 
-\vspace{1em}
+\vspace{2em}
 
 
 Plotting and exploting 3D contours with the `rgl` package is quite slow and visualizations do not look very good. I recomend to export the UD probability volumes to visualize them in other 3D visualizations software such as `Paraview`.
 
-\vspace{1em}
+\vspace{2em}
 
 ```{r paraview, message = FALSE, eval = FALSE}
 # Tables to import into paraview
@@ -637,40 +595,47 @@ contour.table <- lapply(ud.vol.list, function(r) {
     return(cbind(cont.tab[, 1:2], depth = colnames(cont.tab)[n], 
                  vol = cont.tab[, n]))
   })
+  
   cont.tab$depth <- -as.numeric(substr(cont.tab$depth, start = 2, stop = 6))
-  
   return(cont.tab)
-  
 })
-
 
 # Save the tables to import in paraview
 for (i in names(contour.table)) {
   write.csv(contour.table[[i]], row.names = FALSE,
             file = paste0("../", i, ".csv"))
 }
-
 ```
 
+The following picture represents a `Paraview` capture showing the same probability contours as the previous figure.
 
-![Paraview capture showing the same contours probability contours as the previous figure](./3d_paraview.png)
+![](./3d_paraview.png){width=70%}
+
+\vfill
 
 ## Overlap between 3D-UD volumes
 
 In this last step, we show how to calculate the overlap index between two UD-3D volumes with the `overlap3d` function. This function takes a list of 3D-UD volumes and calculates, for each pair of elements, the proportion of voxels that they have in common within a certain contour level. If the `symmetric` argument is `FALSE`, the proportion is calculated in relation to the total number of voxels of each UD volume.
 
-\vspace{1em}
+\vspace{2em}
 
 ```{r overlap, message = FALSE}
 overlap.50 <- overlap3d(ud.vol.list, level = 0.5, symmetric = FALSE)
 overlap.95 <- overlap3d(ud.vol.list, level = 0.95, symmetric = FALSE)
+```
 
-# In this case, UD volumes are not overlapped at the 
-# 50% contour level...
+\vspace{2em}
+
+In this case, UD volumes are not overlapped at the 50% contour level...
+```{r overlap50}
 overlap.50
+```
 
-# But they slightly overlap at 95% contour level
+\vspace{2em}
+
+But they slightly overlap at the 95% contour level.
+
+```{r overlap95}
 overlap.95
-
 ```
 

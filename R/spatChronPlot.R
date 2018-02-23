@@ -47,6 +47,7 @@
 #'
 #' @examples
 #'
+#' \dontrun{
 #' data(tracking)
 #' tracking$rec.id <- factor(tracking$rec.id)
 #' tracking <- split(tracking, tracking$tag.id)
@@ -58,7 +59,7 @@
 #' spatChronPlot(rec.id = tracking[[2]]$rec.id,
 #'               time.stamp = tracking[[2]]$time.stamp)
 #' title(main = names(tracking)[1])
-#'
+#' }
 #'
 spatChronPlot <- function(rec.id, time.stamp, time.int = "30min",
                           colors = NULL, include.all.rec = TRUE,
