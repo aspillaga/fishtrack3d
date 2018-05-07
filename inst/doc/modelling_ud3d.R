@@ -4,7 +4,11 @@ knitr::opts_chunk$set(
   comment = ">"
 )
 
-## ----plot_bathy, echo = TRUE, fig.align = "center", fig.width = 5.8, fig.height = 5, out.width = "70%", warnings = FALSE, messages = FALSE----
+## ----install_fishtrack3d, eval = FALSE-----------------------------------
+#  library(devtools)
+#  github_install("aspillaga/fishtrack3d")
+
+## ----plot_bathy, echo = TRUE, fig.align = "center", fig.width = 4.8, fig.height = 4.7, out.width = "70%", warnings = FALSE, messages = FALSE----
 library(fishtrack3d)
 library(raster)
 library(plyr)
@@ -45,7 +49,6 @@ lines(1:400, predict(range.mod, data.frame(dist.m = 1:400), type = "response"),
 #  elevation[is.na(elevation)] <- 1e+10
 #  elevation <- as(elevation, "SpatialPixelsDataFrame")
 #  
-#  
 #  # Initialize GRASS session
 #  initGRASS("/Applications/GRASS-7.0.app/Contents/MacOS/",
 #            home = tempdir(), override = TRUE)
@@ -63,7 +66,6 @@ lines(1:400, predict(range.mod, data.frame(dist.m = 1:400), type = "response"),
 #    coord <- as.numeric(receivers[receivers$id == i, 2:3])
 #  
 #    # Execute the 'viewshed' analysis
-#    #=================================
 #    execGRASS("r.viewshed", flags = c("overwrite", "b", "quiet"),
 #                parameters = list(input = "elevation",
 #                                  output = "viewshed",
@@ -77,7 +79,6 @@ lines(1:400, predict(range.mod, data.frame(dist.m = 1:400), type = "response"),
 #  
 #  
 #    # Calculate distances from receivers to each raster cell
-#    #========================================================
 #    distances <- sqrt((coordinates(rast.tmp)[, 1] - coord[1])^2 +
 #                        (coordinates(rast.tmp)[, 2] - coord[2])^2)
 #    rast.tmp[!is.na(rast.tmp)] <- distances[!is.na(values(rast.tmp))]
@@ -114,8 +115,6 @@ head(tracking)
 # We will split the data into a list to make it easier to apply the
 # method to both individuals at the same time
 tracking.list <- split(tracking, tracking$tag.id)
-
-# Names of the individuals
 names(tracking.list)
 
 ## ----30minTable, eval = TRUE, message = FALSE----------------------------
@@ -128,7 +127,7 @@ head(t30min[["dentex18"]])
 
 head(t30min.2[["dentex18"]])
 
-## ----spatialCronoPlot, eval = TRUE, echo = TRUE, message = FALSE, fig.align = "center", fig.width = 8.8, fig.height = 7, out.width="70%", dev="png"----
+## ----spatialCronoPlot, eval = TRUE, echo = TRUE, message = FALSE, fig.align = "center", fig.width = 9.2, fig.height = 7, out.width="100%", dev="jpeg"----
 par(mfrow = c(2, 1), mar = c(3.1, 4.1, 3.1, 5.1))
 for (i in names(tracking.list)) {
   t30.tmp <- list(t30min[[i]], t30min.2[[i]])
@@ -139,11 +138,11 @@ for (i in names(tracking.list)) {
   }
 }
 
-## ----depth, eval = TRUE, echo = TRUE, fig.align = "center", fig.width = 6.8, fig.height = 5, out.width="75%"----
-par(mfrow = c(2, 1), mar = c(3.1, 4.6, 2.1, 2.1))
+## ----depth, eval = TRUE, echo = TRUE, fig.align = "center", fig.width = 7.4, fig.height = 3, out.width="90%"----
+par(mar = c(3.1, 4.6, 2.1, 2.1))
 for (i in names(tracking.list)) {
-  plot(t30min[[i]]$time.stamp, -t30min[[i]]$depth, type = "l",
-       xlab = "Date", ylab = "Depth (m)", col = tCol("steelblue", 30), main = i)
+  plot(t30min[[i]]$time.stamp, -t30min[[i]]$depth, type = "l", main = i,
+       xlab = "Date", ylab = "Depth (m)", col = tCol("steelblue", 30))
   lines(t30min.2[[i]]$time.stamp, -t30min.2[[i]]$depth, 
         col = tCol("firebrick", 40))
   legend("bottomleft", legend = c("Simulation 1", "Simulation 2"), cex = 0.9,
@@ -163,6 +162,15 @@ for (i in names(tracking.list)) {
 #  # Load the 'depth.cost.list' object from the downloaded files (OPTIONAL)
 #  # load("./data/depth_cost_list.rda")
 
+## ----get_reconstr_from_simu, eval = TRUE, echo = FALSE-------------------
+
+# To avoid computing the simulations above, we take them directly from the
+# 'synt_path_x100' object
+load("./data/synt_path_x100.rda")
+synthetic.path <- lapply(synt_path_x100, function(l) {
+  return(l[[1]][1:50, ])
+})
+
 ## ----path_reconstrunction, eval = FALSE, message = FALSE-----------------
 #  synthetic.path <- lapply(t30min, function(data.frame) {
 #  
@@ -174,36 +182,21 @@ for (i in names(tracking.list)) {
 #                     ac.range.mod = range.mod, depth.cost.list = depth_cost_list,
 #                     max.vel = 1, check = F)
 #  })
-#  
-#  head(synthetic.path[[1]])
 
-## ----get_reconstr_from_simu, eval = TRUE, include = FALSE----------------
-
-# To avoid computing the simulations above, we take them directly from the
-# 'synt_path_x100' object
-load("./data/synt_path_x100.rda")
-synthetic.path <- lapply(synt_path_x100, function(l) {
-  return(l[[1]][1:50, ])
-})
-
+## ----path_reconstruction_show--------------------------------------------
 head(synthetic.path[[1]])
 
-## ----path_plot2D, eval = TRUE, fig.align = "center", fig.width = 3.8, fig.height = 3.5, fig.show = "hold"----
+## ----path_plot2D, eval = TRUE, fig.align = "center", fig.width = 3.2, fig.height = 2.9, fig.show = "hold"----
 # Plot in two dimensions
-#========================
-op <- par(mar = rep(0.2, 4))
-image(bathymetry, col = terrain.colors(50), asp = 1, ann = FALSE, 
-      axes = FALSE)
+par(mar = rep(0.6, 4))
+image(bathymetry, col = terrain.colors(50), asp = 1, ann = FALSE, axes = FALSE)
 lines(synthetic.path[[1]][, c("x", "y")], col = "firebrick", lwd = 1.2)
 lines(synthetic.path[[2]][, c("x", "y")], col = "dodgerblue", lwd = 1.2)
 legend("topright", legend = names(synthetic.path), lty = 1, bg = "white",
-       col = c("firebrick", "dodgerblue"))
-par(op)
+       col = c("firebrick", "dodgerblue"), cex = 0.8)
 
 ## ----path_plot3D, eval = FALSE-------------------------------------------
-#  
 #  # Plot in three dimensions (with the 'rgl' package)
-#  #===================================================
 #  library(rgl)
 #  
 #  # Create the matrix to plot the bathymetry
@@ -222,11 +215,14 @@ par(op)
 #                  0.83, -0.42, 0.37, 0.00, 0.00, 0.00, 0.00, 1.00),
 #                nrow = 4, byrow = TRUE)
 #  
+#  # Open device and set other visualization options
 #  open3d(scale = c(1, 1, 10), windowRect = c(0, 0, 600, 400))
 #  rgl.viewpoint(userMatrix = mat, zoom = 0.65, fov = 30)
 #  rgl.pop("lights")
-#  light3d(specular="black")
+#  light3d(specular = "black")
+#  
 #  surface3d(x, y, z, col = col)
+#  
 #  lines3d(x = synthetic.path[[1]]$x, y = synthetic.path[[1]]$y,
 #          z = -synthetic.path[[1]]$depth, lwd = 2, col = "firebrick")
 #  lines3d(x = synthetic.path[[2]]$x, y = synthetic.path[[2]]$y,
@@ -244,7 +240,6 @@ par(op)
 #  synt_path_x100 <- lapply(tracking.list, function(df) {
 #  
 #    sim.ind <- plyr::llply(1:100, .parallel = parallel, function(x) {
-#  
 #      # Print individual and current simulation number
 #      cat(df$tag.id[1], "synthetic track no.", x, "\n")
 #  
@@ -336,11 +331,10 @@ load("./data/kde_list.rda")
 #  
 #  open3d(scale = c(1, 1, 10), windowRect = c(0, 0, 600, 400))
 #  rgl.viewpoint(userMatrix = mat, zoom = 0.65, fov = 30)
-#  
 #  rgl.pop("lights")
 #  light3d(specular="black")
-#  surface3d(x, y, z, col = col)
 #  
+#  surface3d(x, y, z, col = col)
 #  plot(kde.list[[1]], cont = c(25, 75), add = TRUE, axes = FALSE,
 #       col.fun = topo.colors, box = FALSE)
 #  plot(kde.list[[2]], cont = c(25, 75), add = TRUE, axes = FALSE,
