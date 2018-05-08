@@ -6,7 +6,7 @@ knitr::opts_chunk$set(
 
 ## ----install_fishtrack3d, eval = FALSE-----------------------------------
 #  library(devtools)
-#  github_install("aspillaga/fishtrack3d")
+#  install_github("aspillaga/fishtrack3d")
 
 ## ----plot_bathy, echo = TRUE, fig.align = "center", fig.width = 5.5, fig.height = 5.3, out.width = "55%", warning = FALSE, message = FALSE----
 # Load required packages

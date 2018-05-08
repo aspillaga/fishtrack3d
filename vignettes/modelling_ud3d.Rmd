@@ -37,7 +37,7 @@ All the neccesary `R` functions and a sample dataset are distributed together wi
 
 ```{r install_fishtrack3d, eval = FALSE}
 library(devtools)
-github_install("aspillaga/fishtrack3d")
+install_github("aspillaga/fishtrack3d")
 ```
 
 \vspace{1em}
