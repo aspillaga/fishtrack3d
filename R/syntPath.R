@@ -104,7 +104,7 @@ syntPath <- function(track.data, topo, dist.rec, ac.range.mod, max.vel = 1,
     # excludes land zones is be created.
     depth.cost.land <- leastCostMap(topo)
   } else {
-    if (any(dim(topo)[1:2] != dim(raster::raster(depth.cost.list[[1]])[1:2]))) {
+    if (any(dim(topo)[1:2] != dim(raster::raster(depth.cost.list[[1]]))[1:2])) {
       stop(paste("The 'topo' object and the layers of 'depth.cost.list'",
                  "objects must have the same dimensions."), call. = FALSE)
     }

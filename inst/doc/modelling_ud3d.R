@@ -8,12 +8,14 @@ knitr::opts_chunk$set(
 #  library(devtools)
 #  github_install("aspillaga/fishtrack3d")
 
-## ----plot_bathy, echo = TRUE, fig.align = "center", fig.width = 4.8, fig.height = 4.7, out.width = "70%", warnings = FALSE, messages = FALSE----
+## ----plot_bathy, echo = TRUE, fig.align = "center", fig.width = 5.5, fig.height = 5.3, out.width = "55%", warning = FALSE, message = FALSE----
+# Load required packages
 library(fishtrack3d)
 library(raster)
 library(plyr)
 library(ks)
 
+# Plot bathymetry and receiver locations
 plot(bathymetry, col = terrain.colors(100))
 points(receivers$long.utm, receivers$lat.utm, pch = 16, cex = 0.8)
 text(receivers$long.utm, receivers$lat.utm, labels = receivers$id, pos = 4)
@@ -32,10 +34,10 @@ head(range_test)
 range.mod <- glm(det.ratio ~ dist.m, data = range_test, 
                  family = quasibinomial(logit))
 
-## ----glm_plot, fig.align = "center", fig.height = 4.2, fig.width = 5.9, out.width = "80%"----
+## ----glm_plot, fig.align = "center", fig.height = 4.8, fig.width = 6.8, out.width = "75%"----
 plot(det.ratio ~ dist.m, data = range_test, xlim = c(0, 400),
-     ylab = "Percentage of detections", 
-     xlab = "Distance from receiver (m)")
+     xlab = "Distance from receiver (m)", ylab = "Percentage of detections", 
+     pch = 21, bg = tCol("dodgerblue", 70))
 lines(1:400, predict(range.mod, data.frame(dist.m = 1:400), type = "response"),
       type = "l", col = "firebrick", lwd = 2)
 
@@ -43,7 +45,7 @@ lines(1:400, predict(range.mod, data.frame(dist.m = 1:400), type = "response"),
 #  library(rgrass7)
 #  
 #  # In the bathymetry raster, NA values correspond to emerged areas.
-#  # We will exaggerate the height of these areas to make sure
+#  # We will exaggerate the height of these areas to make sure that
 #  # everything behind them is removed in the viewshed analysis
 #  elevation <- bathymetry
 #  elevation[is.na(elevation)] <- 1e+10
@@ -102,7 +104,7 @@ for (i in names(viewshed)) {
   image(viewshed[[i]], axes = FALSE, ann = FALSE, asp = 1)
   indx <- validNames(receivers$id) == i
   image(islands, col = tCol("black", 40), add = TRUE)
-  points(receivers[indx, 2:3], pch = 16, cex = 2)
+  points(receivers[indx, 2:3], pch = 16, cex = 1.4)
   text(receivers[indx, 2:3], labels = receivers$id[indx], pos = 4, cex = 2)
   bbox <- bbox(viewshed)
   rect(xleft = bbox[1, 1], xright = bbox[1, 2], ybottom = bbox[2, 1], 
@@ -120,7 +122,7 @@ names(tracking.list)
 ## ----30minTable, eval = TRUE, message = FALSE----------------------------
 t30min <- lapply(tracking.list, thinData, time.int = "30min")
 
-# We thin the data twice to later check the variability
+# We thin the data twice to later check the differences
 t30min.2 <- lapply(tracking.list, thinData, time.int = "30min")
 
 head(t30min[["dentex18"]])
@@ -134,7 +136,7 @@ for (i in names(tracking.list)) {
   for(x in 1:length(t30.tmp)) {
     spatChronPlot(time.stamp = t30.tmp[[x]]$time.stamp,
                   rec.id = factor(t30.tmp[[x]]$rec.id, levels = receivers$id))
-    title(main = paste(i, "- Simulation", x))
+    title(main = paste(i, "- Thinning", x))
   }
 }
 
@@ -145,11 +147,15 @@ for (i in names(tracking.list)) {
        xlab = "Date", ylab = "Depth (m)", col = tCol("steelblue", 30))
   lines(t30min.2[[i]]$time.stamp, -t30min.2[[i]]$depth, 
         col = tCol("firebrick", 40))
-  legend("bottomleft", legend = c("Simulation 1", "Simulation 2"), cex = 0.9,
+  legend("bottomleft", legend = c("Thinning 1", "Thinning 2"), cex = 0.9,
          col = tCol(c("steelblue", "firebrick"), 30), lty = 1, bty = "n")
 }
 
 ## ----depth_cost_matrix, echo = TRUE, eval = FALSE------------------------
+#  # OPTIONAL: Load the 'depth.cost.list' object from the downloaded files.
+#  # If you run this you don't need to run the rest of the chunk.
+#  # load("./data/depth_cost_list.rda")
+#  
 #  # Create the list of transition matrices
 #  depths <- 0:70 # Vector of minimum depths to compute the matrices
 #  
@@ -158,12 +164,8 @@ for (i in names(tracking.list)) {
 #  })
 #  
 #  names(depth_cost_list) <- depths
-#  
-#  # Load the 'depth.cost.list' object from the downloaded files (OPTIONAL)
-#  # load("./data/depth_cost_list.rda")
 
 ## ----get_reconstr_from_simu, eval = TRUE, echo = FALSE-------------------
-
 # To avoid computing the simulations above, we take them directly from the
 # 'synt_path_x100' object
 load("./data/synt_path_x100.rda")
@@ -172,15 +174,11 @@ synthetic.path <- lapply(synt_path_x100, function(l) {
 })
 
 ## ----path_reconstrunction, eval = FALSE, message = FALSE-----------------
-#  synthetic.path <- lapply(t30min, function(data.frame) {
-#  
-#    # Remove receiver NAs and missing depths (if there are NAs).
-#    # We will run the example with only the first 50 positions
-#    df <- subset(data.frame, !is.na(depth))[1:50, ]
-#  
-#    path <- syntPath(track.data = df, topo = bathymetry, dist.rec = viewshed,
+#  synthetic.path <- lapply(t30min, function(df) {
+#    path <- syntPath(track.data = df[1:50, ], topo = bathymetry, dist.rec = viewshed,
 #                     ac.range.mod = range.mod, depth.cost.list = depth_cost_list,
-#                     max.vel = 1, check = F)
+#                     max.vel = 1)
+#    return(path)
 #  })
 
 ## ----path_reconstruction_show--------------------------------------------
@@ -259,8 +257,8 @@ legend("topright", legend = names(synthetic.path), lty = 1, bg = "white",
 #  })
 
 ## ----save_rast3d_list, eval = FALSE, echo = FALSE------------------------
-#  # We can save the 'rast3d' object so we do not have to create it every time we
-#  # compile the vignette
+#  # We can save the 'rast3d.list' object so we do not have to create it every
+#  # time we compile the vignette
 #  save(rast3d.list, file = "./data/rast3d_list.rda", compress = "xz")
 
 ## ----raster_plot, eval = TRUE, echo = FALSE, fig.align = "center", fig.width = 6, fig.height = 3.5----
