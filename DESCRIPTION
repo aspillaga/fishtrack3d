@@ -22,15 +22,17 @@ Imports:
     graphics,
     ks (>= 1.10.7),
     lubridate (>= 1.7.1),
+    misc3d (>= 0.8-4),
+    plotly (>= 4.8.0),
     plyr (>= 1.8.4),
     rgeos (>= 0.3-26),
+    rgl (>= 0.99.9),
     sp (>= 1.2-5),
     zoo (>= 1.8-0)
 Suggests:
     doMC,
     knitr,
     maptools,
-    rgl,
     rgrass7,
     rmarkdown,
     testthat
