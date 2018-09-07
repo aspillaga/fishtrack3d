@@ -23,7 +23,6 @@ Imports:
     ks (>= 1.10.7),
     lubridate (>= 1.7.1),
     misc3d (>= 0.8-4),
-    plotly (>= 4.8.0),
     plyr (>= 1.8.4),
     rgeos (>= 0.3-26),
     rgl (>= 0.99.9),
@@ -33,6 +32,7 @@ Suggests:
     doMC,
     knitr,
     maptools,
+    plotly,
     rgrass7,
     rmarkdown,
     testthat

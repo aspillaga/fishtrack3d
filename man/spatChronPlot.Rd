@@ -56,6 +56,7 @@ different zones of the receiver array.
 }
 \examples{
 
+\dontrun{
 data(tracking)
 tracking$rec.id <- factor(tracking$rec.id)
 tracking <- split(tracking, tracking$tag.id)
@@ -67,7 +68,7 @@ title(main = names(tracking)[1])
 spatChronPlot(rec.id = tracking[[2]]$rec.id,
               time.stamp = tracking[[2]]$time.stamp)
 title(main = names(tracking)[1])
-
+}
 
 }
 \references{

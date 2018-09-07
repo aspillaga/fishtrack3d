@@ -106,9 +106,6 @@ predictKde <- function(kde, raster, depths) {
 #'
 #' @return A \code{list} with the 3D contour meshes.
 #'
-#' @import raster
-#' @import sp
-#'
 #' @export
 #'
 #'
