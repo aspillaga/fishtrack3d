@@ -1,7 +1,7 @@
 ---
-title: "Modelling 3D utilization distributions from acoustic telemetry data in R"
+title: "Modelling three-dimensional utilization distributions from acoustic telemetry data in R"
 author: "Eneko Aspillaga, Kamran Safi, Bernat Hereu, and Frederic Bartumeus"
-date: "May 2018"
+date: "October 2018"
 output: 
   rmarkdown::html_vignette:
   pdf_document:
@@ -26,7 +26,7 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-This document is a step-by-step guide to estimate 3D utilization distributions (3D-UDs) from passive acoustic telemetry data in `R`, following the new numerical method proposed in Aspillaga *et al.* (2018) and implemented in the `fishtrack3d` package. The main novelty of this method is that it takes into account the detection probability around receivers, which is empirically determined, and integrates the depth information from transmitters and the local topography. The method simulates large numbers of stochastic trajectories (synthetic paths) that are then assembled to estimate space use probabilities. All the procedure explained here is carried out with an openly available sample dataset.
+This document is a step-by-step guide to estimate 3D utilization distributions (3D-UDs) from passive acoustic telemetry data in `R`, following the new numerical method implemented in the `fishtrack3d` package. The main novelty of this method is that it takes into account the detection probability around receivers, which is empirically determined, and integrates the depth information from transmitters and the local topography. The method simulates large numbers of stochastic trajectories (synthetic paths) that are then assembled to estimate space use probabilities. All the procedure explained here is carried out with an openly available sample dataset.
 
 
 ##  Sample dataset
@@ -88,9 +88,9 @@ The method to estimate 3D-UDs is divided in three sequential steps:
 
 1. **Empirical characterization of detection probabilities: **Data from an acoustic range test and the local topography are used to characterize the spatial probability of being detected by each receiver.
 
-2. **Simulation of synthetic path realizations: **A large number of stochastic trajectories are simulated from the acoustic telemetry data, taking into account the characterization of detection probabilities, the depth values, and the local topography.
+2. **Simulation of synthetic path realizations: **A large number of synthetic paths (i.e. stochastic trajectories) are simulated from the acoustic telemetry data, taking into account the characterization of detection probabilities, the depth values, and the local topography.
 
-3. **Assemblage of utilization distribution volumes: **3D-UDs are estimated from the spatial occurrence of all the synthetic path realizations within a 3D grid in which the study site has been divided.
+3. **Assemblage of utilization distribution volumes: **3D-UDs are estimated from the spatial occurrence of all the synthetic paths within a 3D grid in which the study site has been divided.
 
 
 ## Step 1: Empirical characterization of detection probabilities
@@ -236,7 +236,7 @@ for (i in names(viewshed)) {
 
 \pagebreak
 
-## Step 2: Simulation of synthetic path realizations
+## Step 2: Simulation of synthetic paths
 
 The object `tracking` contains acoustic telemetry data of two common dentex (*Dentex dentex*) individuals in the Medes Islands marine protected area. The object is a data frame where each row corresponds to one signal detection. The `rec.id` column indicates the ID of the receiver that detected each signal, and the `tag.id` column the ID of the detected individual (in this case there are two individuals, `dentex18` and `dentex43`). `time.stamp` and `depth` columns indicate, respetively, the date and time (in UTC) and the depth of the fish when the detection occurred. In total, the data frame contains 61,528 detections that took place between October 1 and December 31 2007. For this experiment, transmitters were programmed to emit signals at random intervals between 80 and 180 seconds (to reduce the probability of collision between signals).
 
@@ -308,7 +308,7 @@ for (i in names(tracking.list)) {
 
 ### 2.2. Sampling synthetic path realizations
 
-The `syntPath` function generates synthetic path realizations by sampling geographic coordinates for each detection in the acoustic telemetry data, taking into account the following points:
+The `syntPath` function generates synthetic paths by sampling geographic coordinates for each detection in the acoustic telemetry data, taking into account the following points:
 
 - **Distance from the receiver: **The function calculates the probability of being detected by each receiver in each of the cells of the topographic raster. This is done by applying the acoustic-range logistic model (generated in *Step 1.1*) to the distances between receivers and raster cells in the `viewshed` object (generated in *Step 1.2*). The vertical distance is also considered by adding the difference between the depth of the receiver and the depth of each detection before applying the logistic model.
 
@@ -427,7 +427,7 @@ rgl.snapshot("./3d_traj.png", fmt = "png", top = TRUE)
 
 \vspace{1em}
 
-Arrived to this point, we are interested in generating a large number of stochastic trajectories from our original radiotracking data. We will do this by applying the `thinData` and the `synthPath` functions sequentially, as many times as synthetic trajectories we want to generate. This step can be easily parallelized to make it faster using the `llply` function of the `plyr` package.
+Arrived to this point, we are interested in generating a large number of synthetic paths from our original radiotracking data. We will do this by applying the `thinData` and the `synthPath` functions sequentially, as many times as synthetic paths we want to generate. This step can be easily parallelized to make it faster using the `llply` function of the `plyr` package.
 
 \vspace{1em}
 
@@ -511,7 +511,7 @@ l_ply(1:length(rast3d.list), function(r) {
 \vspace{1em}
 \pagebreak
 
-In this last step, we are going to generate smooth UD contours by applying a 3D kernel density estimation to the values calculated for each voxel. First, we have to convert the `RasterStack` object into a data frame with the x, y, and z coordinates and the average time spent by the path in each voxel. Then, we apply the `kde` function from the `ks` package to get the three-dimensional kernel density distribution. We let the `kde` function to set the kernel bandwidth values according to its optimization algorithms. 
+In this last step, we are going to generate smooth UD contours by applying a 3D kernel density estimation to the values calculated for each voxel. First, we have to convert the `RasterStack` object into a data frame with the x, y, and z coordinates and the average time spent by the paths in each voxel. Then, we apply the `kde` function from the `ks` package to get the three-dimensional kernel density distribution. We let the `kde` function to set the kernel bandwidth values according to its optimization algorithms. 
 
 \vspace{1em}
 
@@ -546,48 +546,6 @@ load("./data/kde_list.rda")
 
 \vspace{1em}
 
-We can plot the 3D-UD contours using the `rgl` package. This example shows the 50% and the 90% UD contours (inner and outer volumes) for the two individuals in the example dataset (`dentex18` in purple-blue and `dentex43` in yellow-orange).
-
-\vspace{1em}
-
-```{r plot_kde, eval = FALSE, echo = TRUE}
-library(rgl)
-
-# Generate a matrix to plot the bathymetry
-x <- unique(coordinates(bathymetry)[, 1])
-y <- unique(coordinates(bathymetry)[, 2])
-z <- t(as.matrix(bathymetry))
-z[is.na(z)] <- 0
-
-# Set the color scale for depth
-zlim <- range(z, na.rm = TRUE)
-zlen <- round(zlim[2] - zlim[1] + 1)
-col <- c(gray.colors(zlen)[z - zlim[1] + 1])
-
-# Set the display matrix
-mat <- matrix(c(0.48, 0.88, -0.06, 0.00, -0.30, 0.23, 0.93, 0.00, 0.83, -0.42,
-                0.37, 0.00, 0.00, 0.00, 0.00, 1.00), nrow = 4, byrow = TRUE)
-
-open3d(scale = c(1, 1, 10), windowRect = c(0, 0, 600, 400))
-rgl.viewpoint(userMatrix = mat, zoom = 0.65, fov = 30)
-rgl.pop("lights") 
-light3d(specular="black") 
-
-surface3d(x, y, z, col = col)
-plot(kde.list[[1]], cont = c(25, 75), add = TRUE, axes = FALSE,
-     col.fun = topo.colors, box = FALSE)
-plot(kde.list[[2]], cont = c(25, 75), add = TRUE, axes = FALSE, 
-     col.fun = heat.colors, box = FALSE)
-```
-
-``` {r save_kde_plot, echo = FALSE, eval = FALSE}
-rgl.snapshot("./3d_contour.png", fmt = "png", top = TRUE)
-```
-
-![](./3d_contour.png){width=80%}
-
-\vspace{1em}
-
 In the next part of code we apply the `volumeUD` function to compute the UD volumes from 3D-UD estimations. Before, we have to predict the values of the `kde` to our spatial grid using the `predictKde` function.
 
 \vspace{1em}
@@ -595,48 +553,82 @@ In the next part of code we apply the `volumeUD` function to compute the UD volu
 ```{r volumeUD, message = FALSE}
 # Compute UD volumes
 ud.vol.list <- llply(kde.list, function(k) {
-    rast.tmp <- predictKde(kde = k, raster = bathymetry, depths = 0.5:69.5)
-    rast.tmp <- volumeUD(rast.tmp)
-    return(rast.tmp)
+  rast.tmp <- predictKde(kde = k, raster = bathymetry, depths = 0.5:69.5)
+  rast.tmp <- volumeUD(rast.tmp)
+  return(rast.tmp)
 })
 ```
 
 \vspace{1em}
 
-
-Plotting and exploring 3D contours in `R` with the `rgl` package is quite slow and visualizations do not look very good. We recomend to export the UD probability volumes to visualize them in other 3D visualization software such as `Paraview`.
+Plotting and exploring 3D-UD contours in `R` with the `rgl` package is quite slow and visualizations do not look very good. However, this issue is easily solved using the `plotly` package instead. Before, we have to create the 3D mesh corresponding to the UD volume contours using the `ud3dmesh` function.
 
 \vspace{1em}
 
-```{r paraview, message = FALSE, eval = FALSE}
-# Tables to import into paraview
-contour.table <- lapply(ud.vol.list, function(r) {
+```{r plot_kde, eval = FALSE, echo = TRUE}
+library(plotly)
 
-  # Convert the RasterStack into a table
-  cont.tab <- as.data.frame(r, xy = TRUE)
-  cont.tab <- ldply(3:ncol(cont.tab), function(n) {
-    return(cbind(cont.tab[, 1:2], depth = colnames(cont.tab)[n], 
-                 vol = cont.tab[, n]))
-  })
+# Generate the 3D mesh for the 50% and 95% probability contours
+mesh.list <- llply(ud.vol.list, ud3dmesh, levels = c(0.5, 0.95))
+
+# Define colors for the contours
+col <- list(c("red", "coral"), c("blue", "lightblue"))
+
+
+# Prepare topography
+topo <- list(x = sort(unique(coordinates(bathymetry)[, "x"])),
+             y = rev(sort(unique(coordinates(bathymetry)[, "y"]))),
+             z = as.matrix(bathymetry))
+topo[["z"]][is.na(topo[["z"]])] <- 0
+
+# Color scale for the bathymetry
+colorscale <- list(c(seq(0, 0.999, length = 5), 1),
+                   c("#04243B", "#2F5D81", "#4E81A7", "#89B4D4", "#AFDAF6",
+                    "#C16827"))
+
+# Plot
+p <- plot_ly(hoverinfo = "none") %>%
+
+  layout(scene = list(aspectratio = list(x = 1, y = 1, z = 0.3),
+                      xaxis = list(visible = FALSE, title = "Lat (m N)", 
+                                   showspikes = FALSE),
+                      yaxis = list(visible = FALSE, title = "Long (m E)", 
+                                   showspikes = FALSE),
+                      zaxis = list(tickvals = seq(-60, 0, 20), 
+                                   showspikes = FALSE))) %>%
+
+  # Topography
+  add_surface(x = topo$x, y = topo$y, z = topo$z,
+              cmax = 0, cmin = -70, name = "Depth (m)",
+              colorscale = colorscale, showscale = FALSE,
+              contours = list(x = list(highlight = FALSE),
+                              y = list(highlight = FALSE),
+                              z = list(highlight = FALSE)))
   
-  cont.tab$depth <- -as.numeric(substr(cont.tab$depth, start = 2, stop = 6))
-  return(cont.tab)
-})
+  # Add 3D-UD mesh
+  for (i in seq_along(mesh.list)) {
+    for (l in seq_along(mesh.list[[i]])) {
+      cont <- mesh.list[[i]][[l]]
+      p <- add_mesh(p, x = cont$contour[, 1], y = cont$contour[, 2],
+                     z = -cont$contour[, 3],
+                     i = cont$indx[, 1], j = cont$indx[, 2], 
+                     k = cont$indx[, 3],
+                     facecolor = rep(col[[i]][[l]], nrow(cont$indx)), 
+                     opacity = c(0.8, 0.5)[l])
+    }
+  }
 
-# Save the tables to import in paraview
-for (i in names(contour.table)) {
-  write.csv(contour.table[[i]], row.names = FALSE,
-            file = paste0("../", i, ".csv"))
-}
+p
+
 ```
 
 \vspace{1em}
 
-The following picture is a capture from `Paraview` showing the same probability contours as in the previous figure. Red contours correspond to `dentex18`, and green contours to `dentex43`. 50% and the 90% UD contours are represented by the inner and outer volumes, respectively.
+Red contours correspond to `dentex18`, and blue contours to `dentex43`. 50% and the 90% UD contours are represented by the inner and outer volumes, respectively.
 
 \vspace{1em}
 
-![](./3d_paraview.png){width=100%}
+![](./3d_plotly.png){width=90%}
 
 
 ## Overlap between 3D-UD volumes

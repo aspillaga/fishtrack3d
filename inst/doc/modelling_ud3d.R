@@ -309,66 +309,69 @@ l_ply(1:length(rast3d.list), function(r) {
 ## ----load_kde, eval = TRUE, echo = FALSE---------------------------------
 load("./data/kde_list.rda")
 
-## ----plot_kde, eval = FALSE, echo = TRUE---------------------------------
-#  library(rgl)
-#  
-#  # Generate a matrix to plot the bathymetry
-#  x <- unique(coordinates(bathymetry)[, 1])
-#  y <- unique(coordinates(bathymetry)[, 2])
-#  z <- t(as.matrix(bathymetry))
-#  z[is.na(z)] <- 0
-#  
-#  # Set the color scale for depth
-#  zlim <- range(z, na.rm = TRUE)
-#  zlen <- round(zlim[2] - zlim[1] + 1)
-#  col <- c(gray.colors(zlen)[z - zlim[1] + 1])
-#  
-#  # Set the display matrix
-#  mat <- matrix(c(0.48, 0.88, -0.06, 0.00, -0.30, 0.23, 0.93, 0.00, 0.83, -0.42,
-#                  0.37, 0.00, 0.00, 0.00, 0.00, 1.00), nrow = 4, byrow = TRUE)
-#  
-#  open3d(scale = c(1, 1, 10), windowRect = c(0, 0, 600, 400))
-#  rgl.viewpoint(userMatrix = mat, zoom = 0.65, fov = 30)
-#  rgl.pop("lights")
-#  light3d(specular="black")
-#  
-#  surface3d(x, y, z, col = col)
-#  plot(kde.list[[1]], cont = c(25, 75), add = TRUE, axes = FALSE,
-#       col.fun = topo.colors, box = FALSE)
-#  plot(kde.list[[2]], cont = c(25, 75), add = TRUE, axes = FALSE,
-#       col.fun = heat.colors, box = FALSE)
-
-## ----save_kde_plot, echo = FALSE, eval = FALSE---------------------------
-#  rgl.snapshot("./3d_contour.png", fmt = "png", top = TRUE)
-
 ## ----volumeUD, message = FALSE-------------------------------------------
 # Compute UD volumes
 ud.vol.list <- llply(kde.list, function(k) {
-    rast.tmp <- predictKde(kde = k, raster = bathymetry, depths = 0.5:69.5)
-    rast.tmp <- volumeUD(rast.tmp)
-    return(rast.tmp)
+  rast.tmp <- predictKde(kde = k, raster = bathymetry, depths = 0.5:69.5)
+  rast.tmp <- volumeUD(rast.tmp)
+  return(rast.tmp)
 })
 
-## ----paraview, message = FALSE, eval = FALSE-----------------------------
-#  # Tables to import into paraview
-#  contour.table <- lapply(ud.vol.list, function(r) {
+## ----plot_kde, eval = FALSE, echo = TRUE---------------------------------
+#  library(plotly)
 #  
-#    # Convert the RasterStack into a table
-#    cont.tab <- as.data.frame(r, xy = TRUE)
-#    cont.tab <- ldply(3:ncol(cont.tab), function(n) {
-#      return(cbind(cont.tab[, 1:2], depth = colnames(cont.tab)[n],
-#                   vol = cont.tab[, n]))
-#    })
+#  # Generate the 3D mesh for the 50% and 95% probability contours
+#  mesh.list <- llply(ud.vol.list, ud3dmesh, levels = c(0.5, 0.95))
 #  
-#    cont.tab$depth <- -as.numeric(substr(cont.tab$depth, start = 2, stop = 6))
-#    return(cont.tab)
-#  })
+#  # Define colors for the contours
+#  col <- list(c("red", "coral"), c("blue", "lightblue"))
 #  
-#  # Save the tables to import in paraview
-#  for (i in names(contour.table)) {
-#    write.csv(contour.table[[i]], row.names = FALSE,
-#              file = paste0("../", i, ".csv"))
-#  }
+#  
+#  # Prepare topography
+#  topo <- list(x = sort(unique(coordinates(bathymetry)[, "x"])),
+#               y = rev(sort(unique(coordinates(bathymetry)[, "y"]))),
+#               z = as.matrix(bathymetry))
+#  topo[["z"]][is.na(topo[["z"]])] <- 0
+#  
+#  # Color scale for the bathymetry
+#  colorscale <- list(c(seq(0, 0.999, length = 5), 1),
+#                     c("#04243B", "#2F5D81", "#4E81A7", "#89B4D4", "#AFDAF6",
+#                      "#C16827"))
+#  
+#  # Plot
+#  p <- plot_ly(hoverinfo = "none") %>%
+#  
+#    layout(scene = list(aspectratio = list(x = 1, y = 1, z = 0.3),
+#                        xaxis = list(visible = FALSE, title = "Lat (m N)",
+#                                     showspikes = FALSE),
+#                        yaxis = list(visible = FALSE, title = "Long (m E)",
+#                                     showspikes = FALSE),
+#                        zaxis = list(tickvals = seq(-60, 0, 20),
+#                                     showspikes = FALSE))) %>%
+#  
+#    # Topography
+#    add_surface(x = topo$x, y = topo$y, z = topo$z,
+#                cmax = 0, cmin = -70, name = "Depth (m)",
+#                colorscale = colorscale, showscale = FALSE,
+#                contours = list(x = list(highlight = FALSE),
+#                                y = list(highlight = FALSE),
+#                                z = list(highlight = FALSE)))
+#  
+#    # Add 3D-UD mesh
+#    for (i in seq_along(mesh.list)) {
+#      for (l in seq_along(mesh.list[[i]])) {
+#        cont <- mesh.list[[i]][[l]]
+#        p <- add_mesh(p, x = cont$contour[, 1], y = cont$contour[, 2],
+#                       z = -cont$contour[, 3],
+#                       i = cont$indx[, 1], j = cont$indx[, 2],
+#                       k = cont$indx[, 3],
+#                       facecolor = rep(col[[i]][[l]], nrow(cont$indx)),
+#                       opacity = c(0.8, 0.5)[l])
+#      }
+#    }
+#  
+#  p
+#  
 
 ## ----overlap, message = FALSE--------------------------------------------
 overlap.50 <- overlap3d(ud.vol.list, level = 0.5, symmetric = FALSE)
