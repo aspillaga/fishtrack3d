@@ -35,8 +35,10 @@ volumeUD <- function(ud, ind.layer = FALSE) {
     stop("All the UDs must sum 1.")
   }
 
+  names <- names(ud)
   rank <- (1:length(raster::values(ud)))[rank(raster::values(ud))]
   raster::values(ud) <- 1 - cumsum(sort(raster::values(ud)))[rank]
+  names(ud) <- names
 
   return(ud)
 
