@@ -98,8 +98,7 @@ falseDetect <- function(tag.id, time.stamp, rec.id = NULL, time.int = 24) {
 
       })
 
-      false.array <- Reduce(function(x, y) merge(x, y, all = TRUE),
-                            false.receiver)
+      false.array <- plyr::ldply(false.receiver)
 
     }
 
@@ -107,7 +106,7 @@ falseDetect <- function(tag.id, time.stamp, rec.id = NULL, time.int = 24) {
 
   })
 
-  false.detect <- Reduce(function(x, y) merge(x, y, all = TRUE), false.detect)
+  false.detect <- plyr::ldply(false.detect)
   false.detect <- false.detect[order(false.detect$indx), ]
 
   return(false.detect[, -1])

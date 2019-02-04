@@ -33,7 +33,7 @@ burstInfo <- function(burst.names, time = NULL) {
   names <- matrix(unlist(strsplit(burst.names, "_")), ncol = ncol,
                   byrow = TRUE)
   colnames(names) <- substr(names[1, ], start = 1, stop = 1)
-  names <- substr(names, start = 2, stop = 10)
+  names <- substr(names, start = 2, stop = 50)
 
   data.f <- data.frame(names, stringsAsFactors = FALSE)
   colnames(data.f) <- variables$names[match(colnames(data.f), variables$code)]

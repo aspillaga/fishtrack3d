@@ -4,7 +4,8 @@
 \alias{getDayNight}
 \title{Classify the time stamps of a track into 'day' and 'night' categories}
 \usage{
-getDayNight(time.stamp, coord, proj = sp::CRS("+proj=longlat +datum=WGS84"))
+getDayNight(time.stamp, coord,
+  proj = sp::CRS("+proj=longlat +datum=WGS84"))
 }
 \arguments{
 \item{time.stamp}{vector with the date and time of the detections, in
