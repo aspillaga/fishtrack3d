@@ -44,6 +44,10 @@ getDayNight <- function(time.stamp, coord,
                "with the 'x' and 'y' columns."), call. = FALSE)
   }
 
+  if (nrow(coord) != 1 & nrow(coord) != length(time.stamp)) {
+    stop(paste("Provide either a single pair of coordinates or a pair of",
+               "coordinates for each time stamp"), call. = FALSE)
+  }
 
   ref.proj <- sp::CRS("+proj=longlat +datum=WGS84")
 
@@ -55,15 +59,35 @@ getDayNight <- function(time.stamp, coord,
     coord <- sp::coordinates(points)
   }
 
+
   coordinates <- sp::SpatialPoints(matrix(coord, 1, 2), proj4string = ref.proj)
 
-  sunset <- maptools::sunriset(coordinates, as.POSIXct(time.stamp),
-                               POSIXct.out = TRUE, direction = 'sunset')$time
-  sunrise <- maptools::sunriset(coordinates, as.POSIXct(time.stamp),
-                                POSIXct.out = T, direction = 'sunrise')$time
+  if (nrow(coord) > 1) {
 
-  day.night <- ifelse(time.stamp >= sunrise & time.stamp < sunset, "D", "N")
+    sunset <- maptools::sunriset(coordinates, as.POSIXct(time.stamp),
+                                 POSIXct.out = TRUE, direction = 'sunset')$time
+    sunrise <- maptools::sunriset(coordinates, as.POSIXct(time.stamp),
+                                  POSIXct.out = TRUE,
+                                  direction = 'sunrise')$time
 
-  return(day.night)
+  } else {
+
+    dates <- as.Date(time.stamp)
+    unique.dates <- unique(dates)
+
+    sunset <- maptools::sunriset(coordinates, as.POSIXct(unique.dates),
+                                 POSIXct.out = TRUE, direction = 'sunset')$time
+    sunrise <- maptools::sunriset(coordinates, as.POSIXct(unique.dates),
+                                  POSIXct.out = TRUE,
+                                  direction = 'sunrise')$time
+
+    sunset <- sunset[match(dates, unique.dates)]
+    sunrise <- sunrise[match(dates, unique.dates)]
+
+  }
+
+  period <- ifelse(time.stamp >= sunrise & time.stamp < sunset, "D", "N")
+
+  return(period)
 
 }
