@@ -201,8 +201,6 @@ syntPath <- function(track.data, topo, dist.rec, ac.range.mod, max.vel = 1,
     # avoding calculating the distances between the previous location and all
     # the raster cells.
 
-    # THIS PART OF THE CODE COULD BE OMITTED
-
     rec.to.pos <- which.min(raster::values(dist.rec[[rec.to]]))
     rec.to.coord <- sp::coordinates(dist.rec[[rec.to]])[rec.to.pos, ]
 
@@ -300,7 +298,7 @@ syntPath <- function(track.data, topo, dist.rec, ac.range.mod, max.vel = 1,
     # shortest path between the coordinates taking into account the emerged
     # landmasses
 
-    if (!any(coord.from != coord.to)) {
+    if (!any(round(coord.from, 1) != round(coord.to, 1))) {
 
       path.coord <- data.frame(x = c(coord.from[1], coord.to[1]),
                                y = c(coord.from[2], coord.to[2]))
