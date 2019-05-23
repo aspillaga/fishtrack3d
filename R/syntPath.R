@@ -343,6 +343,14 @@ syntPath <- function(track.data, topo, dist.rec, ac.range.mod, max.vel = 1,
       depth.tmp <- out$depth[n] + (trans.t *
                                      (track.data$depth[loc] -
                                         out$depth[n]) / as.numeric(time.lag))
+
+      # Elevate interpolated points at depths deeper than the depth of the raster
+      # cell
+      path.tmp <- path.coord
+      coordinates(path.tmp) <- ~ x + y
+      depth.rast <- -extract(topo, path.tmp)[-1]
+      depth.tmp <- ifelse(depth.tmp <= depth.rast, depth.tmp, depth.rast)
+
     }
 
 

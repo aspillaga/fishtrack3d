@@ -1,7 +1,7 @@
 Package: fishtrack3d
 Type: Package
 Title: Analysis of Passive Acoustic Telemetry Data in 3D
-Version: 0.1.0
+Version: 1.0.0
 Authors@R: c(
     person("Eneko", "Aspillaga", email = "eneko.aspillaga@gmail.com",
            role = c("aut", "cre")),
